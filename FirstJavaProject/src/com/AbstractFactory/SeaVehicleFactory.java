@@ -5,10 +5,10 @@ public class SeaVehicleFactory implements FactoryofFactory{
         if(type.isEmpty()){
             return null;
         } else {
-           /* switch(type){
+            switch(type){
                 case "yatch" : return new Yatch();
                 case "boat" : return new Boat();
-            }*/
+            }
         }
         return null;
     }
