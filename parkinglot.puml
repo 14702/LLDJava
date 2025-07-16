@@ -1,0 +1,89 @@
+@startuml
+class com.ParkingLot.Ticket {
+~ int id
+~ int duration
+~ Vehicle vehicle
+~ ParkingSpot parkingSpot
++ {static} int generateTicket()
+}
+
+
+class com.ParkingLot.UPIPayment {
++ boolean payTicket(int)
+}
+
+class com.ParkingLot.NearestParkingStrategy {
+~ int spot
++ ParkingSpot findSpot(ParkingSpotManager)
+}
+
+
+class com.ParkingLot.Payment {
++ boolean payTicket(int)
+}
+
+class com.ParkingLot.ExitGate {
+~ List<Ticket> activeTickets
++ void exitVehicle(Ticket)
+}
+
+
+class com.ParkingLot.EntryGate {
+~ ParkingStrategy parkingStrategy
+~ ParkingSpotManager parkingSpotManager
++ ParkingSpot entryVehicle(Vehicle)
+}
+
+
+class com.ParkingLot.ParkingSpot {
+~ int id
+~ int charge
+~ boolean isAvailable
+~ Vehicle vehicle
++ void bookSpot(Vehicle)
++ void freeSpot()
+}
+
+
+class com.ParkingLot.ParkingSpotManager {
+~ List<ParkingSpot> parkingSpots
++ void intializeSpots(int)
++ void addSpot(ParkingSpot)
++ void removeSpot(ParkingSpot)
+}
+
+
+interface com.ParkingLot.ParkingStrategy {
+~ ParkingSpot findSpot(ParkingSpotManager)
+}
+
+class com.ParkingLot.Main {
++ {static} void main(String[])
+}
+
+class com.ParkingLot.Vehicle {
++ int num
++ VehicleType vehtype
+}
+
+enum com.ParkingLot.VehicleType {
++  TWO
++  FOUR
+}
+
+class com.ParkingLot.ParkingLot {
+~ ParkingSpotManager parkingSpotManager
+~ List<Ticket> activeTickets
+~ EntryGate entryGate
+~ ExitGate exitGate
+~ ParkingStrategy parkingStrategy
++ Ticket generateTicket(Vehicle)
++ void exitVehicle(Ticket)
+}
+
+
+
+
+com.ParkingLot.Payment <|-- com.ParkingLot.UPIPayment
+com.ParkingLot.ParkingStrategy <|.. com.ParkingLot.NearestParkingStrategy
+@enduml

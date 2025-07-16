@@ -1,0 +1,91 @@
+@startuml
+
+class com.InventoryManagementSystem.UserController {
+  ~ List<User> listUser
+  + void addUser(User)
+  + void removeUser(User)
+}
+
+class com.InventoryManagementSystem.WarehouseController {
+  ~ List<Warehouse> listWarehouse
+  ~ WarehouseStrategy warehouseStrategy
+  + Warehouse getWarehouse(int)
+  + void addWarehouse(Warehouse)
+  + void removeWarehouse(Warehouse)
+  + void placeOrder(Cart)
+}
+
+class com.InventoryManagementSystem.Zepto {
+  ~ WarehouseController warehouseController
+  ~ UserController userController
+}
+
+interface com.InventoryManagementSystem.WarehouseStrategy {
+  ~ Warehouse findWarehouse(List<Warehouse>)
+}
+
+class com.InventoryManagementSystem.NearestWarehouse {
+  + Warehouse findWarehouse(List<Warehouse>)
+}
+
+class com.InventoryManagementSystem.CheapestStrategy {
+  + Warehouse findWarehouse(List<Warehouse>)
+}
+
+class com.InventoryManagementSystem.Order {
+  ~ int id
+  ~ int userId
+  + void pay()
+}
+
+class com.InventoryManagementSystem.User {
+  + int id
+  + String name
+  ~ Order order
+  ~ Cart cart
+  + void addProductToCart(Product)
+}
+
+class com.InventoryManagementSystem.Product {
+  ~ int id
+  + String name
+  ~ int price
+}
+
+class com.InventoryManagementSystem.Cart {
+  + List<Product> productList
+  + void addProduct(Product)
+}
+
+class com.InventoryManagementSystem.Warehouse {
+  ~ int id
+  ~ List<Product> warehouseProducts
+  + void addProductToWarehouse(Product)
+  + void removeProductToWarehouse(Product)
+}
+
+class com.InventoryManagementSystem.Payment {
+  ~ int amount
+  + {static} boolean makePayment(int)
+}
+
+class com.InventoryManagementSystem.Main {
+  + {static} void main(String[])
+}
+
+' Associations
+User *-- Order : has
+User *-- Cart : owns
+UserController o-- User : manages
+WarehouseController o-- Warehouse : contains
+WarehouseController --> WarehouseStrategy : uses
+Warehouse o-- Product : contains
+Cart o-- Product : contains
+Zepto *-- WarehouseController : creates
+Zepto *-- UserController : creates
+
+' Inheritance
+WarehouseStrategy <|.. NearestWarehouse
+WarehouseStrategy <|.. CheapestStrategy
+
+@enduml

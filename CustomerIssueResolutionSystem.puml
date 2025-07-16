@@ -1,0 +1,135 @@
+@startuml
+class com.CustomerIssueResolutionSystem.repository.AgentRepository {
+~ Map<String,Agent> agents
++ void addAgentToRepo(String,Agent)
++ Agent getAgent(String)
++ Map<String,Agent> getAgents()
+}
+
+
+interface com.CustomerIssueResolutionSystem.service.interfaces.AgentService {
+~ void addAgent(String,String,List<String>)
+~ void viewAgentsWorkHistory()
+~ void assignIssue(Issue)
+}
+
+class com.CustomerIssueResolutionSystem.Main {
++ {static} void main(String[])
+}
+
+class com.CustomerIssueResolutionSystem.model.Issue {
++ {static} Integer idCounter
+~ String transId
+~ String issueId
+~ IssueType issueType
+~ IssueStatus issueStatus
+~ String subject
+~ String description
+~ String customerEmail
+~ String resolution
+~ String agentID
++ String getIssueId()
++ String getTransId()
++ String getSubject()
++ String getDescription()
++ String getCustomerEmail()
++ IssueType getIssueType()
++ IssueStatus getIssueStatus()
++ void setIssueStatus(IssueStatus)
++ void setResolution(String)
++ void setAgentID(String)
++ String getAgentID()
++ void setDescription(String)
+}
+
+
+enum com.CustomerIssueResolutionSystem.enums.IssueStatus {
++  WAITING
++  IN_PROGRESS
++  ASSIGNED
++  RESOLVED
++ {static} IssueStatus getIssueStatus(String)
+}
+
+
+class com.CustomerIssueResolutionSystem.model.Agent {
++ {static} Integer agentCtr
+~ String agentId
+~ String email
+~ String name
+~ List<String> expertiseList
+~ Issue currIssue
+~ List<String> workingHistory
++ List<String> getWorkingHistory()
++ void addToWorkingHistory(String)
++ List<String> getExpertiseList()
++ Issue getCurrIssue()
++ void setCurrIssue(Issue)
++ String getAgentId()
+}
+
+
+class com.CustomerIssueResolutionSystem.strategy.impl.SimpleAgentAssignmentStrategy {
++ void assignAgent(Issue,Map<String,Agent>)
+}
+
+class com.CustomerIssueResolutionSystem.service.impl.IssueServiceImpl {
+~ IssueRepository issueRepository
+~ AgentRepository agentRepository
++ Issue createIssue(String,String,String,String,String)
++ void getIssuesByMail(String)
++ void getIssuesByType(IssueType)
++ void printIssue(Issue)
++ void updateIssue(String,String,String)
++ void resolveIssue(String,String)
+}
+
+
+interface com.CustomerIssueResolutionSystem.service.interfaces.IssueService {
+~ Issue createIssue(String,String,String,String,String)
+~ void getIssuesByMail(String)
+~ void getIssuesByType(IssueType)
+~ void printIssue(Issue)
+~ void updateIssue(String,String,String)
+~ void resolveIssue(String,String)
+}
+
+interface com.CustomerIssueResolutionSystem.strategy.interfaces.AgentAssignmentStrategy {
+~ void assignAgent(Issue,Map<String,Agent>)
+}
+
+class com.CustomerIssueResolutionSystem.service.impl.AgentServiceImpl {
+~ AgentRepository agentRepository
++ void addAgent(String,String,List<String>)
++ void viewAgentsWorkHistory()
++ void assignIssue(Issue)
+}
+
+
+enum com.CustomerIssueResolutionSystem.enums.IssueType {
++  PAYMENT_RELATED
++  MF_RELATED
++  GOLD_RELATED
++  INSURANCE_RELATED
++ {static} IssueType getIssueType(String)
++ {static} String getIssueDescription(IssueType)
+}
+
+
+class com.CustomerIssueResolutionSystem.repository.IssueRepository {
+~ Map<String,Issue> issues
++ void addIssueToRepo(Issue)
++ Issue getIssueById(String)
++ Map<String,Issue> getIssues()
+}
+
+
+class com.CustomerIssueResolutionSystem.exceptions.InvalidInputException {
+}
+
+
+com.CustomerIssueResolutionSystem.strategy.interfaces.AgentAssignmentStrategy <|.. com.CustomerIssueResolutionSystem.strategy.impl.SimpleAgentAssignmentStrategy
+com.CustomerIssueResolutionSystem.service.interfaces.IssueService <|.. com.CustomerIssueResolutionSystem.service.impl.IssueServiceImpl
+com.CustomerIssueResolutionSystem.service.interfaces.AgentService <|.. com.CustomerIssueResolutionSystem.service.impl.AgentServiceImpl
+com.CustomerIssueResolutionSystem.exceptions.Exception <|-- com.CustomerIssueResolutionSystem.exceptions.InvalidInputException
+@enduml

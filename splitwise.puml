@@ -1,0 +1,75 @@
+@startuml
+class com.Splitwise.EqualSplit {
+}
+class com.Splitwise.Main {
++ {static} void main(String[])
+}
+
+abstract class com.Splitwise.Expense {
+~ int id
+~ int amount
+~ int paidBy
+~ List<Split> splits
++ {abstract}boolean validate()
+}
+
+
+class com.Splitwise.ExactExpense {
++ boolean validate()
+}
+
+enum com.Splitwise.ExpenseType {
++  EQUAL
++  EXACT
++  PERCENTAGE
+}
+
+enum com.Splitwise.SplitType {
++  EQUAL
++  EXACT
++  PERCENTAGE
+}
+
+class com.Splitwise.Split {
+~ User user
+~ int amount
+}
+
+class com.Splitwise.User {
++ int id
++ String name
+}
+
+class com.Splitwise.EqualExpense {
++ boolean validate()
+}
+
+class com.Splitwise.ExpenseController {
+~ List<Expense> expenses
+~ Map<Integer,User> userMap
++ Map<Integer,Map<Integer,Integer>> balanceSheet
++ void addUser(User)
++ void addExpense(ExpenseType,int,int,int)
+}
+
+
+class com.Splitwise.ExactSplit {
+}
+class com.Splitwise.PercentageSplit {
+~ int percentage
+}
+
+
+
+com.Splitwise.Split <|-- com.Splitwise.EqualSplit
+com.Splitwise.Expense <|-- com.Splitwise.ExactExpense
+com.Splitwise.Expense <|-- com.Splitwise.EqualExpense
+com.Splitwise.Split <|-- com.Splitwise.ExactSplit
+com.Splitwise.Split <|-- com.Splitwise.PercentageSplit
+
+com.Splitwise.Main --> com.Splitwise.ExpenseController : create
+com.Splitwise.ExpenseController --> com.Splitwise.Expense : has
+com.Splitwise.ExpenseController --> com.Splitwise.User : uses
+com.Splitwise.Expense --> "*" com.Splitwise.Split : contains
+
+@enduml
