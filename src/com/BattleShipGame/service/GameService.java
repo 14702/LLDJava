@@ -1,23 +1,22 @@
 package com.BattleShipGame.service;
 import com.BattleShipGame.model.Board;
 import com.BattleShipGame.model.Ship;
-import com.BattleShipGame.strategy.RandomStrategy;
-import java.util.ArrayList;
-import java.util.List;
+import com.BattleShipGame.strategy.interfaces.Strategy;
 
 public class GameService {
     private int size;
     private Board board;
-    private List<Ship> playerAShips = new ArrayList<>();
-    private List<Ship> playerBShips = new ArrayList<>();
     private int shipCounterA = 1;
     private int shipCounterB = 1;
+    private final Strategy strategy;
+
+    public GameService(Strategy strategy) {
+        this.strategy = strategy;
+    }
 
     public void initGame(int size) {
         this.size = size;
         this.board = new Board(size);
-        playerAShips.clear();
-        playerBShips.clear();
         shipCounterA = 1;
         shipCounterB = 1;
         System.out.println("Game initialized with battlefield size " + size + "x" + size);
@@ -25,14 +24,29 @@ public class GameService {
         System.out.println("PlayerB assigned columns " + (size / 2) + " to " + (size - 1));
     }
 
-    public boolean addShip(String player, int x, int y, int width, int height) {
+    public boolean addShip(String player, int x, int y, int shipSize) {
+        int leftLimit = 0;
+        int rightLimit = size / 2;
+        int shipColStart = x;
+        int shipColEnd = x + shipSize - 1;
+
+        if (player.equals("A")) {
+            if (shipColStart < leftLimit || shipColEnd >= rightLimit) {
+                System.out.println("PlayerA's ship must be in columns 0 to " + (rightLimit - 1));
+                return false;
+            }
+        } else if (player.equals("B")) {
+            if (shipColStart < rightLimit || shipColEnd >= size) {
+                System.out.println("PlayerB's ship must be in columns " + rightLimit + " to " + (size - 1));
+                return false;
+            }
+        }
+
         String id = "SH" + (player.equals("A") ? shipCounterA++ : shipCounterB++);
-        Ship ship = new Ship(id, player, x, y, width, height);
+        Ship ship = new Ship(id, player, x, y, shipSize);
         boolean placed = board.placeShip(ship);
         if (placed) {
-            if (player.equals("A")) playerAShips.add(ship);
-            else playerBShips.add(ship);
-            System.out.println("Added " + player + "'s ship with id " + id + " at (" + x + "," + y + ") size " + width + "x" + height);
+            System.out.println("Added " + player + "'s ship with id " + id + " at (" + x + "," + y + ") size " + shipSize);
         } else {
             System.out.println("Failed to add " + player + "'s ship with id " + id + " at (" + x + "," + y + ")");
         }
@@ -44,36 +58,42 @@ public class GameService {
     }
 
     public void startGame() {
-        RandomStrategy strategy = new RandomStrategy();
         boolean isATurn = true;
-        int turnCount = 1;
-        while (board.hasShipsRemaining("A") && board.hasShipsRemaining("B")) {
+        while (true) {
             String player = isATurn ? "A" : "B";
-            int[] shot;
-            if (player.equals("A")) {
-                shot = strategy.nextShot(size / 2); // PlayerA only shoots in left half
+            String opponent = isATurn ? "B" : "A";
+            int[] shot = strategy.nextShot(size, player);
+            if (player.equals("B")) {
+                shot[0] = strategy.randomInRange(0, size / 2);
             } else {
-                shot = strategy.nextShot(size / 2);
-                shot[0] += size / 2; // PlayerB only shoots in right half
+                shot[0] = strategy.randomInRange(size / 2, size);
             }
             String res = board.shoot(shot[0], shot[1]);
-            String msg = "Player" + player + "'s turn: Missile fired at (" + shot[0] + ", " + shot[1] + "). ";
+            String msg = "Player" + player + " turn: Missile fired at (" + shot[0] + ", " + shot[1] + "). ";
             if (res.startsWith("Hit")) {
                 msg += "\"Hit\".";
                 String[] split = res.split("\\|");
                 if (split.length > 2 && split[2].equals("Destroyed")) {
-                    msg += " Player" + (player.equals("A") ? "B" : "A") + "'s ship with id \"" + split[1].substring(2) + "\" destroyed.";
+                    msg += " Player" + opponent + " ship with id \"" + split[1].substring(2) + "\" destroyed.";
                 }
             } else {
                 msg += "\"Miss\".";
             }
             System.out.println(msg);
+
+            boolean opponentHasShips = board.hasShipsRemaining(opponent);
+            boolean playerHasShips = board.hasShipsRemaining(player);
+
+            if (!opponentHasShips) {
+                System.out.println("Player " + player + " wins");
+                break;
+            }
+            if (!playerHasShips) {
+                System.out.println("Player " + opponent + " wins");
+                break;
+            }
+
             isATurn = !isATurn;
-            turnCount++;
         }
-        if (!board.hasShipsRemaining("A"))
-            System.out.println("Player B wins!");
-        else
-            System.out.println("Player A wins!");
     }
 }

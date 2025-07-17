@@ -20,16 +20,16 @@ public class Board {
     }
 
     public boolean placeShip(Ship ship) {
-        int x = ship.getX(), y = ship.getY(), w = ship.getWidth(), h = ship.getHeight();
+        int x = ship.getStartX(), y = ship.getStartY(), s = ship.getSize();
         // Bound check
-        if (x < 0 || y < 0 || x + w > size || y + h > size) return false;
+        if (x < 0 || y < 0 || x + s > size || y + s > size) return false;
         // Overlap check
-        for (int i = x; i < x + w; i++)
-            for (int j = y; j < y + h; j++)
+        for (int i = x; i < x + s; i++)
+            for (int j = y; j < y + s; j++)
                 if (grid[i][j] != CellStatus.EMPTY) return false;
         // Place ship
-        for (int i = x; i < x + w; i++)
-            for (int j = y; j < y + h; j++) {
+        for (int i = x; i < x + s; i++)
+            for (int j = y; j < y + s; j++) {
                 grid[i][j] = CellStatus.SHIP;
                 shipMarkers[i][j] = ship.getPlayer() + "-" + ship.getId();
             }
@@ -42,8 +42,9 @@ public class Board {
             grid[x][y] = CellStatus.HIT;
             String marker = shipMarkers[x][y];
             Ship ship = shipMap.get(marker);
-            if (ship != null && isShipDestroyed(ship)) {
+            if (ship != null) {
                 ship.setDestroyed(true);
+                removeShipFromBoard(ship); // Remove entire ship if any part is hit
                 return "Hit|" + marker + "|Destroyed";
             }
             return "Hit|" + marker;
@@ -51,21 +52,24 @@ public class Board {
             grid[x][y] = CellStatus.MISS;
             return "Miss";
         } else {
-            return "Miss"; // already hit/miss
+            return "Miss";
         }
     }
 
-    private boolean isShipDestroyed(Ship ship) {
-        int x = ship.getX(), y = ship.getY(), w = ship.getWidth(), h = ship.getHeight();
-        for (int i = x; i < x + w; i++)
-            for (int j = y; j < y + h; j++)
-                if (grid[i][j] == CellStatus.SHIP) return false;
-        return true;
+    private void removeShipFromBoard(Ship ship) {
+        int x = ship.getStartX(), y = ship.getStartY(), s = ship.getSize();
+        for (int i = x; i < x + s; i++)
+            for (int j = y; j < y + s; j++) {
+                if (shipMarkers[i][j].equals(ship.getPlayer() + "-" + ship.getId())) {
+                    grid[i][j] = CellStatus.EMPTY;
+                    shipMarkers[i][j] = "";
+                }
+            }
+        shipMap.remove(ship.getPlayer() + "-" + ship.getId());
     }
 
     public boolean hasShipsRemaining(String player) {
-        for (String key : shipMap.keySet()) {
-            Ship ship = shipMap.get(key);
+        for (Ship ship : shipMap.values()) {
             if (ship.getPlayer().equals(player) && !ship.isDestroyed())
                 return true;
         }
@@ -74,8 +78,8 @@ public class Board {
 
     public void viewBattleField() {
         System.out.println("Battlefield:");
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int j = 0; j < size; j++) { // rows
+            for (int i = 0; i < size; i++) { // columns
                 if (shipMarkers[i][j] != null && !shipMarkers[i][j].isEmpty()) {
                     System.out.print(shipMarkers[i][j] + "\t");
                 } else if (grid[i][j] == CellStatus.HIT) {

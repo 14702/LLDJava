@@ -1,30 +1,33 @@
 package com.BattleShipGame;
-import com.BattleShipGame.model.Ship;
 import com.BattleShipGame.service.GameService;
-import com.BattleShipGame.strategy.RandomStrategy;
+import com.BattleShipGame.strategy.impl.RandomStrategy;
+import com.BattleShipGame.strategy.interfaces.Strategy;
 
 public class BattleShipDemo {
     public static void main(String[] args) {
-        int size = 8; // Example size
-        GameService gameService = new GameService();
+        int size = 8; // example size
+        Strategy strategy = new RandomStrategy();
+        GameService gameService = new GameService(strategy);
 
         gameService.initGame(size);
 
-        // Add ships for PlayerA (left half)
-        gameService.addShip("A", 0, 0, 2, 2); // SH1
-        gameService.addShip("A", 2, 2, 2, 2); // SH2
+        // Considering origin at left top. Right side is +X and bottom down +Y
+        // add out of board exceptions for ships
+        // add ships for PlayerA (left half, columns 0 to 3)
+        gameService.addShip("A", 0, 0, 2); // SH1 (at 0,0, size 2, covers [0,0] to [1,1])
+        gameService.addShip("A", 2, 2, 2); // SH2 (at 2,2, size 2, covers [2,2] to [3,3])
 
-        // Add ships for PlayerB (right half)
-        gameService.addShip("B", 4, 1, 2, 2); // SH1
-        gameService.addShip("B", 6, 4, 2, 2); // SH2
+        // Add ships for PlayerB (right half, columns 4 to 7)
+        gameService.addShip("B", 4, 1, 2); // SH1 (at 4,1, size 2, covers [4,1] to [5,2])
+        gameService.addShip("B", 6, 4, 2); // SH2 (at 6,4, size 2, covers [6,4] to [7,5])
 
-        System.out.println("\nInitial Battlefield:");
+        System.out.println("\nInitial battlefield ship placement:");
         gameService.viewBattleField();
 
         System.out.println("\nStarting Game...\n");
         gameService.startGame();
 
-        System.out.println("\nFinal Battlefield:");
+        System.out.println("\nFinal Battlefield ship placement:");
         gameService.viewBattleField();
     }
 }

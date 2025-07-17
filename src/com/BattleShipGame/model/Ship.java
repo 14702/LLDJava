@@ -3,24 +3,22 @@ package com.BattleShipGame.model;
 public class Ship {
     private final String id;
     private final String player; // "A" or "B"
-    private final int x, y, width, height;
+    private final int startX, startY, size;
     private boolean destroyed = false;
 
-    public Ship(String id, String player, int x, int y, int width, int height) {
+    public Ship(String id, String player, int startX, int startY, int size) {
         this.id = id;
         this.player = player;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        this.startX = startX;
+        this.startY = startY;
+        this.size = size;
     }
 
     public String getId() { return id; }
     public String getPlayer() { return player; }
-    public int getX() { return x; }
-    public int getY() { return y; }
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
+    public int getStartX() { return startX; }
+    public int getStartY() { return startY; }
+    public int getSize() { return size; }
     public boolean isDestroyed() { return destroyed; }
     public void setDestroyed(boolean destroyed) { this.destroyed = destroyed; }
 }
