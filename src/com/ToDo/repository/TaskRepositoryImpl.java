@@ -2,6 +2,8 @@ package com.ToDo.repository;
 import com.ToDo.model.Task;
 import com.ToDo.exception.InvalidTaskIdException;
 import com.ToDo.exception.TaskNotFoundException;
+import com.ToDo.repository.interfaces.TaskRepository;
+
 import java.time.Instant;
 import java.util.*;
 
@@ -14,6 +16,7 @@ public class TaskRepositoryImpl implements TaskRepository {
     public TaskRepositoryImpl() {
         this.tasks = new HashMap<>();
         this.tagsToTaskIdMapping = new HashMap<>();
+        this.removedTasks = new ArrayList<>();
     }
 
     @Override

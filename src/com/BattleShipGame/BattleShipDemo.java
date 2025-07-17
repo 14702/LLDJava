@@ -1,13 +1,14 @@
 package com.BattleShipGame;
-import com.BattleShipGame.service.GameService;
+import com.BattleShipGame.service.GameServiceImpl;
 import com.BattleShipGame.strategy.impl.RandomStrategy;
 import com.BattleShipGame.strategy.interfaces.Strategy;
 
 public class BattleShipDemo {
     public static void main(String[] args) {
-        int size = 8; // example size
+        // example size
+        int size = 8;
         Strategy strategy = new RandomStrategy();
-        GameService gameService = new GameService(strategy);
+        GameServiceImpl gameService = new GameServiceImpl(strategy);
 
         gameService.initGame(size);
 

@@ -1,16 +1,17 @@
 package com.BattleShipGame.service;
 import com.BattleShipGame.model.Board;
 import com.BattleShipGame.model.Ship;
+import com.BattleShipGame.service.interfaces.GameService;
 import com.BattleShipGame.strategy.interfaces.Strategy;
 
-public class GameService {
+public class GameServiceImpl implements GameService {
     private int size;
     private Board board;
     private int shipCounterA = 1;
     private int shipCounterB = 1;
     private final Strategy strategy;
 
-    public GameService(Strategy strategy) {
+    public GameServiceImpl(Strategy strategy) {
         this.strategy = strategy;
     }
 

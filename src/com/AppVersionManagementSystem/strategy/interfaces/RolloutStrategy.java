@@ -1,4 +1,4 @@
-package com.AppVersionManagementSystem.strategy;
+package com.AppVersionManagementSystem.strategy.interfaces;
 
 import com.AppVersionManagementSystem.model.AppVersionDetails;
 

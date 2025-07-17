@@ -1,9 +1,10 @@
-package com.AppVersionManagementSystem.repository;
+package com.AppVersionManagementSystem.repository.impl;
 
 import com.AppVersionManagementSystem.enums.DeviceType;
 import com.AppVersionManagementSystem.model.AppVersionDetails;
 import com.AppVersionManagementSystem.model.Device;
 import com.AppVersionManagementSystem.model.Version;
+import com.AppVersionManagementSystem.repository.interfaces.DeviceRepository;
 
 import java.util.HashMap;
 import java.util.List;

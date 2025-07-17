@@ -1,7 +1,8 @@
-package com.AppVersionManagementSystem.strategy;
+package com.AppVersionManagementSystem.strategy.Impl;
 
 import com.AppVersionManagementSystem.model.AppVersionDetails;
-import com.AppVersionManagementSystem.repository.DeviceRepository;
+import com.AppVersionManagementSystem.repository.interfaces.DeviceRepository;
+import com.AppVersionManagementSystem.strategy.interfaces.RolloutStrategy;
 import com.AppVersionManagementSystem.utility.AppUtility;
 
 public class BetaRolloutStrategy implements RolloutStrategy {

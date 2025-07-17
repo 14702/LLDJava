@@ -1,4 +1,4 @@
-package com.AppVersionManagementSystem.repository;
+package com.AppVersionManagementSystem.repository.interfaces;
 
 import com.AppVersionManagementSystem.model.AppVersionDetails;
 import com.AppVersionManagementSystem.model.Device;

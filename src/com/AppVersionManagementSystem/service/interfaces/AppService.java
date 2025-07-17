@@ -1,4 +1,4 @@
-package com.AppVersionManagementSystem.service;
+package com.AppVersionManagementSystem.service.interfaces;
 
 import com.AppVersionManagementSystem.model.AppVersionDetails;
 import com.AppVersionManagementSystem.model.Device;

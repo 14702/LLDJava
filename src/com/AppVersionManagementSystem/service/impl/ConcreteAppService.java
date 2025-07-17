@@ -1,10 +1,11 @@
-package com.AppVersionManagementSystem.service;
+package com.AppVersionManagementSystem.service.impl;
 
 import com.AppVersionManagementSystem.model.AppVersionDetails;
 import com.AppVersionManagementSystem.model.Device;
-import com.AppVersionManagementSystem.repository.AppVersionDetailsRepository;
-import com.AppVersionManagementSystem.repository.DeviceRepository;
-import com.AppVersionManagementSystem.strategy.RolloutStrategy;
+import com.AppVersionManagementSystem.repository.interfaces.AppVersionDetailsRepository;
+import com.AppVersionManagementSystem.repository.interfaces.DeviceRepository;
+import com.AppVersionManagementSystem.service.interfaces.AppService;
+import com.AppVersionManagementSystem.strategy.interfaces.RolloutStrategy;
 import com.AppVersionManagementSystem.utility.AppUtility;
 
 public class ConcreteAppService implements AppService {

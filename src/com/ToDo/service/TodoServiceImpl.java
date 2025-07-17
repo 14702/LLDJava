@@ -1,10 +1,11 @@
 package com.ToDo.service;
 
-import com.ToDo.enums.TaskStatus;
 import com.ToDo.exception.TaskNotFoundException;
 import com.ToDo.model.Task;
 import com.ToDo.model.TaskStatistics;
-import com.ToDo.repository.TaskRepository;
+import com.ToDo.repository.interfaces.TaskRepository;
+import com.ToDo.service.interfaces.TodoService;
+
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,10 +30,10 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public void modifyTask(Task task) {
-        if (task.getStatus().equals(TaskStatus.COMPLETED)) {
+        /*if (task.getStatus().equals(TaskStatus.COMPLETED)) {
             removeTask(task.getTaskId());
             return;
-        }
+        }*/
         taskRepository.modifyTask(task);
     }
 

@@ -5,14 +5,14 @@ import com.AppVersionManagementSystem.model.AppMetaData;
 import com.AppVersionManagementSystem.model.AppVersionDetails;
 import com.AppVersionManagementSystem.model.Device;
 import com.AppVersionManagementSystem.model.Version;
-import com.AppVersionManagementSystem.repository.AppVersionDetailsRepository;
-import com.AppVersionManagementSystem.repository.DeviceRepository;
-import com.AppVersionManagementSystem.repository.LocalAppVersionDetailsRepository;
-import com.AppVersionManagementSystem.repository.LocalDeviceRepository;
-import com.AppVersionManagementSystem.strategy.BetaRolloutStrategy;
-import com.AppVersionManagementSystem.strategy.RolloutStrategy;
-import com.AppVersionManagementSystem.service.AppService;
-import com.AppVersionManagementSystem.service.ConcreteAppService;
+import com.AppVersionManagementSystem.repository.interfaces.AppVersionDetailsRepository;
+import com.AppVersionManagementSystem.repository.interfaces.DeviceRepository;
+import com.AppVersionManagementSystem.repository.impl.LocalAppVersionDetailsRepository;
+import com.AppVersionManagementSystem.repository.impl.LocalDeviceRepository;
+import com.AppVersionManagementSystem.strategy.Impl.BetaRolloutStrategy;
+import com.AppVersionManagementSystem.strategy.interfaces.RolloutStrategy;
+import com.AppVersionManagementSystem.service.interfaces.AppService;
+import com.AppVersionManagementSystem.service.impl.ConcreteAppService;
 
 import java.util.UUID;
 
