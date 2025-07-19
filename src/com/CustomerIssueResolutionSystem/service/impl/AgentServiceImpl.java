@@ -22,12 +22,11 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public void addAgent(String email, String name, List<String> expertiseList){
         Agent agent = new Agent(email, name, expertiseList);
-        agentRepository.addAgentToRepo(agent.getAgentId(), agent);
+        agentRepository.addAgentToRepository(agent.getAgentId(), agent);
         System.out.println("Agent "+ agent.getAgentId()+ " created");
     }
 
-    //viewAgentsWorkHistory()
-    //A1 -> {I1, I3}, A2 -> {I2} Time Duration
+    //desc: viewAgentsWorkHistory() //A1 -> {I1, I3}, A2 -> {I2} Time Duration
     @Override
     public void viewAgentsWorkHistory(){
         for(Agent agent : agentRepository.getAgents().values()){
@@ -43,12 +42,17 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public void assignIssue (Issue issue) throws InvalidInputException {
         Map<String, Agent> agents = agentRepository.getAgents();
-        if(issue == null) throw new InvalidInputException("Issue cant be assigned as its not created yet");
+        if(issue == null)
+            throw new InvalidInputException("Issue cant be assigned as its not created yet");
 
+        // Strategy can be injected from Driver class as well.
         AgentAssignmentStrategy agentAssignmentStrategy = new SimpleAgentAssignmentStrategy();
         agentAssignmentStrategy.assignAgent(issue, agentRepository.getAgents());
-        // moved agent assignment to strategy
-        if(issue.getAgentID().isEmpty()) throw new InvalidInputException("No expert agents are available");
+
+        if(issue.getAgentID().isEmpty())
+            throw new InvalidInputException("No expert agents are available");
+
+        // add waiting logic for issues
     }
 
 }

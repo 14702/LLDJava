@@ -8,20 +8,20 @@ public enum IssueType {
 
     public static IssueType getIssueType(String issuetype){
         switch(issuetype){
-            case "payment related" : return PAYMENT_RELATED;
-            case "mutual fund related" : return MF_RELATED;
-            case "gold related" : return GOLD_RELATED;
-            case "insurance related" : return INSURANCE_RELATED;
+            case "Payment Related" : return PAYMENT_RELATED;
+            case "Mutual Fund Related" : return MF_RELATED;
+            case "Gold Related" : return GOLD_RELATED;
+            case "Insurance Related" : return INSURANCE_RELATED;
             default : throw new IllegalArgumentException("Unknown issue type: " + issuetype);
         }
     }
 
     public static String getIssueDescription (IssueType issueType){
         switch(issueType){
-            case PAYMENT_RELATED : return "payment related";
-            case MF_RELATED: return "mutual fund related";
-            case GOLD_RELATED: return "gold related";
-            case INSURANCE_RELATED: return "insurance related";
+            case PAYMENT_RELATED : return "Payment Related";
+            case MF_RELATED: return "Mutual Fund Related";
+            case GOLD_RELATED: return "Gold Related";
+            case INSURANCE_RELATED: return "Insurance Related";
             default : throw new IllegalArgumentException("Issue type not found");
         }
     }

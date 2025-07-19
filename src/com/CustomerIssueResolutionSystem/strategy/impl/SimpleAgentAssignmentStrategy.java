@@ -11,6 +11,7 @@ public class SimpleAgentAssignmentStrategy implements AgentAssignmentStrategy {
 
     @Override
     public void assignAgent (Issue issue, Map<String, Agent> agents){
+
         for( Agent agent : agents.values()){
             if(agent.getCurrIssue() == null){
                 for(String expertise : agent.getExpertiseList()){
@@ -18,11 +19,12 @@ public class SimpleAgentAssignmentStrategy implements AgentAssignmentStrategy {
                         // Assign agent for issue
                         issue.setAgentID(agent.getAgentId());
                         agent.setCurrIssue(issue);
-                        System.out.println("Assigned an Agent: " + agent.getAgentId() + " to issue: " + issue.getIssueId());
+                        System.out.println("Issue "+ issue.getIssueId() +  " assigned to agent: " + agent.getAgentId() );
                     }
                 }
             }
         }
+
     }
 }
 

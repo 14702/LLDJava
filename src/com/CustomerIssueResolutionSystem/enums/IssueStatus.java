@@ -1,6 +1,7 @@
 package com.CustomerIssueResolutionSystem.enums;
 
 public enum IssueStatus {
+    OPEN,
     WAITING,
     IN_PROGRESS,
     ASSIGNED,
@@ -8,10 +9,11 @@ public enum IssueStatus {
 
     public static IssueStatus getIssueStatus(String issueStatus){
         switch(issueStatus){
-            case "waiting": return WAITING;
-            case "in progress" : return IN_PROGRESS;
-            case "assigned" : return ASSIGNED;
-            case "resolved" : return RESOLVED;
+            case "Open": return OPEN;
+            case "Waiting": return WAITING;
+            case "In Progress" : return IN_PROGRESS;
+            case "Assigned" : return ASSIGNED;
+            case "Resolved" : return RESOLVED;
             default : throw new IllegalArgumentException("Unknown issue status: " + issueStatus);
         }
     }

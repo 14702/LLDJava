@@ -1,7 +1,7 @@
 package com.CustomerIssueResolutionSystem.model;
 
-import com.CustomerIssueResolutionSystem.enums.IssueStatus;
 import com.CustomerIssueResolutionSystem.enums.IssueType;
+import com.CustomerIssueResolutionSystem.enums.IssueStatus;
 
 public class Issue {
     public static Integer idCounter = 1;
@@ -22,7 +22,7 @@ public class Issue {
         this.description = description;
         this.customerEmail = customerEmail;
         this.issueId = "I" + Issue.idCounter++;
-        this.issueStatus = IssueStatus.WAITING;
+        this.issueStatus = IssueStatus.OPEN;
         this.resolution = "";
         this.agentID = "";
     }

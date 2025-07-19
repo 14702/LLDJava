@@ -6,7 +6,7 @@ import com.CustomerIssueResolutionSystem.model.Issue;
 
 public interface IssueService {
     Issue createIssue(String transId, String issueType, String subject, String description, String customerEmail);
-    void getIssuesByMail(String email) throws InvalidInputException;
+    void getIssuesByEmail(String email) throws InvalidInputException;
     void getIssuesByType(IssueType issueType);
     void printIssue (Issue issue);
     void updateIssue(String issueId, String issueStatus, String description) throws InvalidInputException;

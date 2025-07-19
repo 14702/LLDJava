@@ -9,14 +9,15 @@ public class IssueRepository {
         this.issues = new HashMap<>();
     }
 
-    public void addIssueToRepo(Issue issue){
+    public void addIssueToRepository(Issue issue){
         issues.put(issue.getIssueId(),issue);
     }
 
     public Issue getIssueById (String issueId){
         if(issues.containsKey(issueId)){
             return issues.get(issueId);
-        } else throw new IllegalArgumentException("Issue doesn't exist for id " + issueId);
+        } else
+            throw new IllegalArgumentException("Issue doesn't exist for id " + issueId);
     }
 
     public Map<String, Issue> getIssues (){
