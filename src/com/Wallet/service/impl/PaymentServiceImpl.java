@@ -7,16 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import com.Wallet.FilterStrategy.TransactionFilterStrategy;
-import com.Wallet.SortStrategy.TransactionSortStrategy;
-import com.Wallet.datastore.PaymentData;
+import com.Wallet.FilterStrategy.interfaces.TransactionFilterStrategy;
+import com.Wallet.SortStrategy.interfaces.TransactionSortStrategy;
+import com.Wallet.repository.PaymentData;
 import com.Wallet.enums.Ordering;
 import com.Wallet.enums.PaymentMode;
 import com.Wallet.enums.TransactionType;
 import com.Wallet.model.Transaction;
 import com.Wallet.model.Wallet;
-import com.Wallet.service.PaymentService;
-import com.Wallet.service.WalletServiceInternal;
+import com.Wallet.service.interfaces.PaymentService;
+import com.Wallet.service.interfaces.WalletServiceInternal;
 
 public class PaymentServiceImpl implements PaymentService {
 

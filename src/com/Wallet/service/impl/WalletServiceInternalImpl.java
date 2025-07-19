@@ -1,8 +1,8 @@
 package com.Wallet.service.impl;
 
-import com.Wallet.datastore.WalletData;
+import com.Wallet.repository.WalletData;
 import com.Wallet.model.Wallet;
-import com.Wallet.service.WalletServiceInternal;
+import com.Wallet.service.interfaces.WalletServiceInternal;
 
 public class WalletServiceInternalImpl implements WalletServiceInternal {
 

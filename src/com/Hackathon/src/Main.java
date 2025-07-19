@@ -12,7 +12,7 @@ import com.Hackathon.src.strategy.impl.DifficultySortStrategyImpl;
 import com.Hackathon.src.strategy.impl.ScoreSortStrategyImpl;
 import com.Hackathon.src.strategy.impl.TagFilterStrategyImpl;
 
-public class Hackathon {
+public class Main {
     public static void main(String[] args) {
         UserService userService = UserServiceImpl.getInstance();
         ProblemService problemService = ProblemServiceImpl.getInstance();

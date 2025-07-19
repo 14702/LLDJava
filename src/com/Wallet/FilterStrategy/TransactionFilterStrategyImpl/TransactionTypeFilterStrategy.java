@@ -1,6 +1,6 @@
 package com.Wallet.FilterStrategy.TransactionFilterStrategyImpl;
 
-import com.Wallet.FilterStrategy.TransactionFilterStrategy;
+import com.Wallet.FilterStrategy.interfaces.TransactionFilterStrategy;
 import com.Wallet.model.Transaction;
 import java.util.List;
 import java.util.stream.Collectors;

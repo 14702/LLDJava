@@ -1,4 +1,4 @@
-package com.Wallet.SortStrategy;
+package com.Wallet.SortStrategy.interfaces;
 
 import java.util.List;
 import com.Wallet.enums.Ordering;

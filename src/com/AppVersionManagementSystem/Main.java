@@ -16,7 +16,7 @@ import com.AppVersionManagementSystem.service.impl.ConcreteAppService;
 
 import java.util.UUID;
 
-public class AppVersionManagementDemo {
+public class Main {
     public static void main(String[] args) {
         AppVersionDetailsRepository appVersionDetailsRepository = new LocalAppVersionDetailsRepository();
         DeviceRepository deviceRepository = new LocalDeviceRepository();

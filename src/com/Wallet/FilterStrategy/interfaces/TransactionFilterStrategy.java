@@ -1,4 +1,4 @@
-package com.Wallet.FilterStrategy;
+package com.Wallet.FilterStrategy.interfaces;
 import com.Wallet.model.Transaction;
 
 import java.util.List;

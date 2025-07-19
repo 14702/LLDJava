@@ -2,7 +2,7 @@ package com.Wallet.FilterStrategy.TransactionFilterStrategyImpl;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import com.Wallet.FilterStrategy.TransactionFilterStrategy;
+import com.Wallet.FilterStrategy.interfaces.TransactionFilterStrategy;
 import com.Wallet.model.Transaction;
 
 public class UserFilterStrategy implements TransactionFilterStrategy {

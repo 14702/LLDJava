@@ -1,11 +1,11 @@
 package com.Wallet.service.impl;
 
 import java.util.Objects;
-import com.Wallet.datastore.UserData;
+import com.Wallet.repository.UserData;
 import com.Wallet.exceptions.UserAlreadyExist;
 import com.Wallet.model.User;
-import com.Wallet.service.UserService;
-import com.Wallet.service.WalletServiceInternal;
+import com.Wallet.service.interfaces.UserService;
+import com.Wallet.service.interfaces.WalletServiceInternal;
 
 public class UserServiceImpl implements UserService {
 

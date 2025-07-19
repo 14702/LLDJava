@@ -1,8 +1,8 @@
-package com.Wallet.service;
+package com.Wallet.service.interfaces;
 
 import java.util.List;
-import com.Wallet.FilterStrategy.TransactionFilterStrategy;
-import com.Wallet.SortStrategy.TransactionSortStrategy;
+import com.Wallet.FilterStrategy.interfaces.TransactionFilterStrategy;
+import com.Wallet.SortStrategy.interfaces.TransactionSortStrategy;
 import com.Wallet.enums.Ordering;
 import com.Wallet.enums.PaymentMode;
 import com.Wallet.model.Transaction;

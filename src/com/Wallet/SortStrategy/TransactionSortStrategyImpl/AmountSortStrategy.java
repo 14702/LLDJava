@@ -1,7 +1,7 @@
 package com.Wallet.SortStrategy.TransactionSortStrategyImpl;
 
 import java.util.List;
-import com.Wallet.SortStrategy.TransactionSortStrategy;
+import com.Wallet.SortStrategy.interfaces.TransactionSortStrategy;
 import com.Wallet.enums.Ordering;
 import com.Wallet.model.Transaction;
 

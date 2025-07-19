@@ -3,7 +3,7 @@ import com.BattleShipGame.service.GameServiceImpl;
 import com.BattleShipGame.strategy.impl.RandomStrategy;
 import com.BattleShipGame.strategy.interfaces.Strategy;
 
-public class BattleShipDemo {
+public class Main {
     public static void main(String[] args) {
         // example size
         int size = 8;
