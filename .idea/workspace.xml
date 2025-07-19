@@ -5,44 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="27469264-9d5a-4f76-baef-53c15ff0700c" name="Changes" comment="First Java Project">
-      <change afterPath="$PROJECT_DIR$/src/com/PaymentGateway/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/com/PaymentGateway/enums/PaymentMethod.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FirstJavaProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/FirstJavaProject.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/AppVersionManagementSystem/AppVersionManagementDemo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/AppVersionManagementSystem/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/BattleShipGame/BattleShipDemo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/BattleShipGame/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/enums/IssueStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/enums/IssueStatus.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/enums/IssueType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/enums/IssueType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/model/Agent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/model/Agent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/model/Issue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/model/Issue.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/repository/AgentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/repository/AgentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/repository/IssueRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/repository/IssueRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/service/impl/AgentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/service/impl/AgentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/service/impl/IssueServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/service/impl/IssueServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/service/interfaces/IssueService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/service/interfaces/IssueService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/strategy/impl/SimpleAgentAssignmentStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/strategy/impl/SimpleAgentAssignmentStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/strategy/interfaces/AgentAssignmentStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/CustomerIssueResolutionSystem/strategy/interfaces/AgentAssignmentStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Hackathon/src/Hackathon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Hackathon/src/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/FilterStrategy/TransactionFilterStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/FilterStrategy/interfaces/TransactionFilterStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/FilterStrategy/TransactionFilterStrategyImpl/TransactionTypeFilterStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/FilterStrategy/TransactionFilterStrategyImpl/TransactionTypeFilterStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/FilterStrategy/TransactionFilterStrategyImpl/UserFilterStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/FilterStrategy/TransactionFilterStrategyImpl/UserFilterStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/SortStrategy/TransactionSortStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/SortStrategy/interfaces/TransactionSortStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/SortStrategy/TransactionSortStrategyImpl/AmountSortStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/SortStrategy/TransactionSortStrategyImpl/AmountSortStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/SortStrategy/TransactionSortStrategyImpl/TimeSortStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/SortStrategy/TransactionSortStrategyImpl/TimeSortStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/datastore/PaymentData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/repository/PaymentData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/datastore/UserData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/repository/UserData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/datastore/WalletData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/repository/WalletData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/service/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/service/interfaces/PaymentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/service/interfaces/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/service/WalletServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/service/interfaces/WalletServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/service/WalletServiceInternal.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/service/interfaces/WalletServiceInternal.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/service/impl/PaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/service/impl/PaymentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/service/impl/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/service/impl/UserServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/service/impl/WalletServiceClientImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/service/impl/WalletServiceClientImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/Wallet/service/impl/WalletServiceInternalImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/Wallet/service/impl/WalletServiceInternalImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -247,7 +211,23 @@
       <option name="project" value="LOCAL" />
       <updated>1752824891539</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="First Java Project">
+      <option name="closed" value="true" />
+      <created>1752908095284</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1752908095284</updated>
+    </task>
+    <task id="LOCAL-00015" summary="First Java Project">
+      <option name="closed" value="true" />
+      <created>1752908128766</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1752908128766</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="UnknownFeatures">
