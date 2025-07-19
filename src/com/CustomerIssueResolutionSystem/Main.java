@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class Main {
     public static void main(String [] args){
 
-        // Creating repositories to contain issues and agents
+        // Creating repositories to contain issues and agente
         IssueRepository issueRepository = new IssueRepository();
         AgentRepository agentRepository = new AgentRepository();
 
