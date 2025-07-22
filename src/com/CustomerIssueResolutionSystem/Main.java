@@ -9,6 +9,9 @@ import com.CustomerIssueResolutionSystem.enums.IssueType;
 import com.CustomerIssueResolutionSystem.exceptions.InvalidInputException;
 import com.CustomerIssueResolutionSystem.repository.AgentRepository;
 import com.CustomerIssueResolutionSystem.repository.IssueRepository;
+import com.CustomerIssueResolutionSystem.strategy.impl.SimpleAgentAssignmentStrategy;
+import com.CustomerIssueResolutionSystem.strategy.interfaces.AgentAssignmentStrategy;
+
 import java.util.Arrays;
 
 public class Main {
@@ -18,8 +21,10 @@ public class Main {
         IssueRepository issueRepository = new IssueRepository();
         AgentRepository agentRepository = new AgentRepository();
 
+        AgentAssignmentStrategy agentAssignmentStrategy = new SimpleAgentAssignmentStrategy();
+
         // Creating agent and issue service
-        AgentService agentService = new AgentServiceImpl(agentRepository);
+        AgentService agentService = new AgentServiceImpl(agentRepository, agentAssignmentStrategy);             // inject strategy from main
         IssueService issueService = new IssueServiceImpl(issueRepository, agentRepository);
 
         // Save created issue in main
@@ -42,13 +47,13 @@ public class Main {
 
         // Filtering issues by Mail
         try{
-            issueService.getIssuesByEmail("testUser2@test.com");
+            issueService.getIssues("testUser2@test.com");
         } catch (InvalidInputException e){
             System.out.println(e.getMessage());
         }
 
         // Filtering issues by Type
-        issueService.getIssuesByType(IssueType.PAYMENT_RELATED);
+        issueService.getIssues(IssueType.PAYMENT_RELATED);          // + create 2 menthod, once filter by type and once by email
 
         // Updating the issue
         try{
@@ -64,8 +69,6 @@ public class Main {
             System.out.println(e.getMessage());
         }
 
-        // List of "RESOLVED" tickets per agent not the "OPEN" ones
-        System.out.println("Agents with List of Resolved issues ");
         agentService.viewAgentsWorkHistory();
     }
 }

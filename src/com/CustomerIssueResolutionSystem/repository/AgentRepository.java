@@ -3,7 +3,7 @@ import com.CustomerIssueResolutionSystem.model.Agent;
 import java.util.*;
 
 public class AgentRepository {
-    Map<String, Agent> agents;  // {"A1", agent}
+    Map<String, Agent> agents;  // {"A1", agent} // +++ add concurrentHashMap()
 
     public AgentRepository(){
         this.agents = new HashMap<>();

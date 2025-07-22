@@ -9,7 +9,7 @@ public class Agent {
     List<String> expertiseList;
     Issue currIssue;
     List<String> workingHistory;        // {"I1", "I2", "I3"... }
-    List<String> waitingIssuesList;
+    Queue<Issue> waitingIssuesList;     // newly added to contain issue
 
     public Agent (String email, String name, List<String> expertiseList){
         this.agentId = "A" + Agent.agentCtr++;
@@ -18,38 +18,31 @@ public class Agent {
         this.expertiseList = expertiseList;
         this.currIssue = null;
         this.workingHistory = new ArrayList<>();
-        this.waitingIssuesList = new ArrayList<>();
+        this.waitingIssuesList = new LinkedList<>();
     }
 
     public List<String> getWorkingHistory(){
         return this.workingHistory;
     }
-
     public void addToWorkingHistory(String issueId){
         this.workingHistory.add(issueId);
     }
-
     public List<String> getExpertiseList(){
         return this.expertiseList;
     }
-
     public Issue getCurrIssue(){
         return this.currIssue;
     }
-
     public void setCurrIssue(Issue currIssue){
         this.currIssue = currIssue;
     }
-
     public String getAgentId(){
         return this.agentId;
     }
-
-    public void addToWaitingIssuesList(String issueId){
-        this.waitingIssuesList.add(issueId);
+    public void addToWaitingIssuesList(Issue issue){
+        this.waitingIssuesList.add(issue);
     }
-
-    public List<String> getWaitingIssuesList(String issueId){
+    public Queue<Issue> getWaitingIssuesList(){
         return this.waitingIssuesList;
     }
 }

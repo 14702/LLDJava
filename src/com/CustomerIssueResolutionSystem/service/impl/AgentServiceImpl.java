@@ -12,9 +12,10 @@ import java.util.*;
 
 public class AgentServiceImpl implements AgentService {
     AgentRepository agentRepository;
-
-    public AgentServiceImpl(AgentRepository agentRepository){
+    AgentAssignmentStrategy agentAssignmentStrategy;
+    public AgentServiceImpl(AgentRepository agentRepository, AgentAssignmentStrategy agentAssignmentStrategy){
         this.agentRepository = agentRepository;
+        this.agentAssignmentStrategy = agentAssignmentStrategy;
     }
 
     //addAgent(“agent1@test.com”, “Agent 1”, Arrays.asList("Payment Related", "Gold Related"));
@@ -45,14 +46,11 @@ public class AgentServiceImpl implements AgentService {
         if(issue == null)
             throw new InvalidInputException("Issue cant be assigned as its not created yet");
 
-        // Strategy can be injected from Driver class as well.
-        AgentAssignmentStrategy agentAssignmentStrategy = new SimpleAgentAssignmentStrategy();
         agentAssignmentStrategy.assignAgent(issue, agentRepository.getAgents());
 
-        if(issue.getAgentID().isEmpty())
-            throw new InvalidInputException("No expert agents are available");
+        /*if(issue.getAgentID().isEmpty())
+            throw new InvalidInputException("No expert agents are available");*/
 
-        // add waiting logic for issues
     }
 
 }
