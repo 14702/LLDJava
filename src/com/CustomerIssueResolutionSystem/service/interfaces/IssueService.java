@@ -3,11 +3,13 @@ package com.CustomerIssueResolutionSystem.service.interfaces;
 import com.CustomerIssueResolutionSystem.enums.IssueType;
 import com.CustomerIssueResolutionSystem.exceptions.InvalidInputException;
 import com.CustomerIssueResolutionSystem.model.Issue;
+import java.util.Map;  // ✅ ADD THIS IMPORT
 
 public interface IssueService {
     Issue createIssue(String transId, String issueType, String subject, String description, String customerEmail);
     void getIssues(String email) throws InvalidInputException;
     void getIssues(IssueType issueType);
+    void getIssuesByFilter(Map<String, String> filter) throws InvalidInputException;  // ✅ ADD THIS METHOD
     void printIssue (Issue issue);
     void updateIssue(String issueId, String issueStatus, String description) throws InvalidInputException;
     void resolveIssue(String issueId, String description) throws InvalidInputException;

@@ -1,0 +1,77 @@
+@startuml
+enum com.BattleShipGame.enums.CellStatus {
++  EMPTY
++  SHIP
++  HIT
++  MISS
+}
+
+class com.BattleShipGame.model.Ship {
+- String id
+- String player
+- int startX
+- boolean destroyed
++ String getId()
++ String getPlayer()
++ int getStartX()
++ int getStartY()
++ int getSize()
++ boolean isDestroyed()
++ void setDestroyed(boolean)
+}
+
+
+interface com.BattleShipGame.service.interfaces.GameService {
+~ void initGame(int)
+~ boolean addShip(String,int,int,int)
+~ void viewBattleField()
+~ void startGame()
+}
+
+class com.BattleShipGame.service.GameServiceImpl {
+- int size
+- Board board
+- int shipCounterA
+- int shipCounterB
+- Strategy strategy
++ void initGame(int)
++ boolean addShip(String,int,int,int)
++ void viewBattleField()
++ void startGame()
+}
+
+
+class com.BattleShipGame.strategy.impl.RandomStrategy {
+- Random random
++ int[] nextShot(int,String)
++ int randomInRange(int,int)
+}
+
+
+class com.BattleShipGame.Main {
++ {static} void main(String[])
+}
+
+class com.BattleShipGame.model.Board {
+- int size
+- CellStatus[][] grid
+- String[][] shipMarkers
+- HashMap<String,Ship> shipMap
++ boolean placeShip(Ship)
++ String shoot(int,int)
+- void removeShipFromBoard(Ship)
++ boolean hasShipsRemaining(String)
++ void viewBattleField()
+}
+
+
+interface com.BattleShipGame.strategy.interfaces.Strategy {
+~ int[] nextShot(int,String)
+~ int randomInRange(int,int)
+}
+
+
+
+com.BattleShipGame.service.interfaces.GameService <|.. com.BattleShipGame.service.GameServiceImpl
+com.BattleShipGame.strategy.interfaces.Strategy <|.. com.BattleShipGame.strategy.impl.RandomStrategy
+@enduml

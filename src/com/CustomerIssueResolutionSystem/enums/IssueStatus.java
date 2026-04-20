@@ -1,19 +1,31 @@
 package com.CustomerIssueResolutionSystem.enums;
 
 public enum IssueStatus {
-    OPEN,
-    IN_PROGRESS,
-    ASSIGNED,
-    RESOLVED;
+    OPEN("Open"),
+    ASSIGNED("Assigned"),
+    IN_PROGRESS("In Progress"),
+    RESOLVED("Resolved");
 
+    private final String displayName;
+
+    IssueStatus(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    // ✅ FIX: Better error handling
     public static IssueStatus getIssueStatus(String issueStatus){
-        switch(issueStatus){
-            case "Open": return OPEN;
-            // case "Waiting": return WAITING; can remove this, Only 4 is needed, @creation - OPEN, @agentAssign - ASSIGNED, @updateissue - INPROGRESS , RESOLVED
-            case "In Progress" : return IN_PROGRESS;
-            case "Assigned" : return ASSIGNED;
-            case "Resolved" : return RESOLVED;
-            default : throw new IllegalArgumentException("Unknown issue status: " + issueStatus);
+        if(issueStatus == null || issueStatus.trim().isEmpty())
+            throw new IllegalArgumentException("Issue status cannot be null or empty");
+        
+        for(IssueStatus status : IssueStatus.values()){
+            if(status.displayName.equalsIgnoreCase(issueStatus.trim())){
+                return status;
+            }
         }
+        throw new IllegalArgumentException("Unknown issue status: " + issueStatus);
     }
 }

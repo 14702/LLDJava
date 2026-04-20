@@ -1,0 +1,123 @@
+@startuml
+enum com.ToDo.enums.TaskStatus {
++  SCHEDULED
++  IN_PROGRESS
++  COMPLETED
+}
+
+class com.ToDo.model.Activity {
+}
+class com.ToDo.service.TodoServiceImpl {
+- TaskRepository taskRepository
++ void addTask(Task)
++ Task getTask(String)
++ void modifyTask(Task)
++ void removeTask(String)
++ List<Task> listTasks()
++ List<Task> listTasks(List<String>)
++ List<Task> listTasks(Date)
++ List<Task> listTasks(Date,Date)
++ TaskStatistics getStatistics()
++ TaskStatistics getStatistics(Date,Date)
++ void getActivityLog()
++ void getActivityLog(Date,Date)
+}
+
+
+class com.ToDo.model.Task {
+- String taskId
+- String details
+- Date deadline
+- Date createdAt
+- Date updatedAt
+- List<String> tags
+- TaskStatus status
++ String getTaskId()
++ void setTaskId(String)
++ String getDetails()
++ void setDetails(String)
++ Date getDeadline()
++ void setDeadline(Date)
++ TaskStatus getStatus()
++ void setStatus(TaskStatus)
++ List<String> getTags()
++ void setTags(List<String>)
++ Date getCreatedAt()
++ void setCreatedAt(Date)
++ Date getUpdatedAt()
++ void setUpdatedAt(Date)
+}
+
+
+class com.ToDo.exception.TaskNotFoundException {
+}
+interface com.ToDo.repository.interfaces.TaskRepository {
+~ void addTask(Task)
+~ Task getTask(String)
+~ void modifyTask(Task)
+~ void removeTask(String)
+~ List<Task> listTasks()
+~ List<Task> getRemovedTasks()
+~ Map<String,List<String>> getTagsToTaskIdMapping()
+}
+
+interface com.ToDo.service.interfaces.TodoService {
+~ void addTask(Task)
+~ Task getTask(String)
+~ void modifyTask(Task)
+~ void removeTask(String)
+~ List<Task> listTasks()
+~ List<Task> listTasks(Date)
+~ List<Task> listTasks(Date,Date)
+~ List<Task> listTasks(List<String>)
+~ TaskStatistics getStatistics()
+~ TaskStatistics getStatistics(Date,Date)
+~ void getActivityLog()
+~ void getActivityLog(Date,Date)
+}
+
+class com.ToDo.exception.InvalidTaskIdException {
+}
+class com.ToDo.model.TaskStatistics {
+- List<Task> added
+- List<Task> modified
+- List<Task> removed
+- List<Task> spilledOverDeadline
++ List<Task> getAdded()
++ void setAdded(List<Task>)
++ List<Task> getModified()
++ void setModified(List<Task>)
++ List<Task> getRemoved()
++ void setRemoved(List<Task>)
++ List<Task> getSpilledOverDeadline()
++ void setSpilledOverDeadline(List<Task>)
+}
+
+
+class com.ToDo.repository.TaskRepositoryImpl {
+- Map<String,Task> tasks
+- Map<String,List<String>> tagsToTaskIdMapping
+- List<Task> removedTasks
++ void addTask(Task)
++ Task getTask(String)
++ void modifyTask(Task)
++ void removeTask(String)
++ List<Task> listTasks()
++ Map<String,List<String>> getTagsToTaskIdMapping()
++ List<Task> getRemovedTasks()
+- void addTags(Task)
+- void addTags(String,Task)
+}
+
+
+class com.ToDo.ToDoApplication {
++ {static} void main(String[])
+}
+
+
+
+com.ToDo.service.interfaces.TodoService <|.. com.ToDo.service.TodoServiceImpl
+com.ToDo.exception.RuntimeException <|-- com.ToDo.exception.TaskNotFoundException
+com.ToDo.exception.RuntimeException <|-- com.ToDo.exception.InvalidTaskIdException
+com.ToDo.repository.interfaces.TaskRepository <|.. com.ToDo.repository.TaskRepositoryImpl
+@enduml

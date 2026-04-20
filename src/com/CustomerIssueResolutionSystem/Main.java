@@ -1,5 +1,6 @@
 package com.CustomerIssueResolutionSystem;
 
+import com.CustomerIssueResolutionSystem.model.IssueFilterBuilder;
 import com.CustomerIssueResolutionSystem.service.interfaces.AgentService;
 import com.CustomerIssueResolutionSystem.service.interfaces.IssueService;
 import com.CustomerIssueResolutionSystem.service.impl.AgentServiceImpl;
@@ -13,12 +14,13 @@ import com.CustomerIssueResolutionSystem.strategy.impl.SimpleAgentAssignmentStra
 import com.CustomerIssueResolutionSystem.strategy.interfaces.AgentAssignmentStrategy;
 
 import java.util.Arrays;
+import java.util.Map;
 
 public class Main {
     public static void main(String [] args){
 
         // Creating repositories to contain issues and agente
-        IssueRepository issueRepository = new IssueRepository();
+        IssueRepository issueRepository = IssueRepository.getInstance();                // For singleton design pattern
         AgentRepository agentRepository = new AgentRepository();
 
         AgentAssignmentStrategy agentAssignmentStrategy = new SimpleAgentAssignmentStrategy();
@@ -54,6 +56,10 @@ public class Main {
 
         // Filtering issues by Type
         issueService.getIssues(IssueType.PAYMENT_RELATED);          // + create 2 menthod, once filter by type and once by email
+
+        // Filter using builder
+        Map<String, String> filter = new IssueFilterBuilder().byEmail("testUser2@test.com").build();                // + advance filtering usign builder pattern
+        //pass this filter to getIssue
 
         // Updating the issue
         try{

@@ -11,36 +11,47 @@ import java.util.Map;
 public class SimpleAgentAssignmentStrategy implements AgentAssignmentStrategy {
 
     @Override
-    public void assignAgent (Issue issue, Map<String, Agent> agents){
-
-        for( Agent agent : agents.values()){
-            // can use Synchronized(agent) if multiple threads are used
-            if(agent.getCurrIssue() == null){   // agent is free -> check expertise
-                for(String expertise : agent.getExpertiseList()){
-                    if(issue.getIssueType().equals(IssueType.getIssueType(expertise))){
-                        // Assign agent for issue
+    public void assignAgent(Issue issue, Map<String, Agent> agents){
+        if(issue == null) throw new IllegalArgumentException("Issue cannot be null");
+        
+        // ✅ FIX: First pass - assign to free agent
+        for(Agent agent : agents.values()){
+            synchronized(agent){  // ✅ Keep synchronized block
+                if(agent.getCurrIssue() == null){
+                    boolean canHandle = agent.getExpertiseList().stream()
+                            .anyMatch(expertise -> 
+                                issue.getIssueType().equals(IssueType.getIssueType(expertise)));
+                    
+                    if(canHandle){
+                        // ✅ FIX: All state changes INSIDE synchronized block
                         issue.setAgentID(agent.getAgentId());
-                        issue.setIssueStatus(IssueStatus.ASSIGNED);                                 // ++ Assigned state
+                        issue.setIssueStatus(IssueStatus.ASSIGNED);
                         agent.setCurrIssue(issue);
-                        // add the issue to agent working history
-                        agent.addToWorkingHistory(issue.getIssueId());                              // ++ added to working history
-                        System.out.println("Issue "+ issue.getIssueId() +  " assigned to agent: " + agent.getAgentId() );
+                        agent.addToWorkingHistory(issue.getIssueId());
+                        System.out.println("Issue "+ issue.getIssueId() +  " assigned to agent: " + agent.getAgentId());
+                        return;  // ✅ Exit after successful assignment
                     }
                 }
             }
         }
-        // no agent is found, get the first agent with expertise and assign issue to its waiting
-        if(issue.getAgentID().isEmpty()){
-            for( Agent agent : agents.values()){
-                for(String expertise : agent.getExpertiseList()){
-                    if(issue.getIssueType().equals(IssueType.getIssueType(expertise))){
-                        // Assign to agent waiting list agent for issue
-                        agent.addToWaitingIssuesList(issue);
-                        System.out.println("Issue "+ issue.getIssueId() +  " added to waiting list for  agent: " + agent.getAgentId() );
-                    }
+        
+        // ✅ FIX: Second pass - add to waiting queue
+        for(Agent agent : agents.values()){
+            synchronized(agent){
+                boolean canHandle = agent.getExpertiseList().stream()
+                        .anyMatch(expertise -> 
+                            issue.getIssueType().equals(IssueType.getIssueType(expertise)));
+                
+                if(canHandle){
+                    agent.addToWaitingIssuesList(issue);
+                    System.out.println("Issue "+ issue.getIssueId() +  " added to waiting list for agent: " + agent.getAgentId());
+                    return;  // ✅ Exit after adding to queue
                 }
             }
         }
+        
+        // ✅ FIX: Edge case - no agents available
+        System.out.println("⚠️ WARNING: Issue "+ issue.getIssueId() +  " could not be assigned - no agents with required expertise available");
     }
 }
 

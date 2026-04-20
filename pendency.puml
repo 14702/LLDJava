@@ -1,0 +1,83 @@
+@startuml
+class com.PendencySystem.exceptions.DuplicateEntityException {
+}
+class com.PendencySystem.exceptions.NotFoundException {
+}
+class com.PendencySystem.model.Transaction {
+- Integer id
+- List<String> tags
++ Integer getId()
++ List<String> getTags()
+}
+
+
+interface com.PendencySystem.repository.interfaces.TagRepository {
+~ void createTags(List<String>)
+~ void deleteTransactionFromTags(List<String>)
+~ Tag getLeafTag(List<String>)
+}
+
+class com.PendencySystem.model.Tag {
+- String name
+- Map<String,Tag> childTags
+- Integer count
++ void incrementCount()
++ void decrementCount()
++ Map<String,Tag> getChildTags()
++ Integer getCount()
+}
+
+
+class com.PendencySystem.repository.impl.TagRepositoryImpl {
+- {static} TagRepositoryImpl instance
+- {static} Tag rootTag
++ {static} TagRepositoryImpl getInstance()
++ void createTags(List<String>)
++ void deleteTransactionFromTags(List<String>)
++ Tag getLeafTag(List<String>)
+}
+
+
+class com.PendencySystem.repository.impl.TransactionRepositoryImpl {
+- {static} TransactionRepositoryImpl instance
+- {static} Map<Integer,Transaction> transactions
++ {static} TransactionRepositoryImpl getInstance()
++ Transaction create(Integer,List<String>)
++ Transaction get(Integer)
++ void remove(Integer)
+}
+
+
+class com.PendencySystem.Main {
++ {static} void main(String[])
+}
+
+class com.PendencySystem.service.impl.PendencyManagementServiceImpl {
+- TransactionRepository transactionRepository
+- TagRepository tagRepository
++ void startTracking(Integer,List<String>)
++ void stopTracking(Integer)
++ Integer getCounts(List<String>)
+}
+
+
+interface com.PendencySystem.service.interfaces.PendencyManagementService {
+~ void startTracking(Integer,List<String>)
+~ void stopTracking(Integer)
+~ Integer getCounts(List<String>)
+}
+
+interface com.PendencySystem.repository.interfaces.TransactionRepository {
+~ Transaction create(Integer,List<String>)
+~ Transaction get(Integer)
+~ void remove(Integer)
+}
+
+
+
+com.PendencySystem.exceptions.RuntimeException <|-- com.PendencySystem.exceptions.DuplicateEntityException
+com.PendencySystem.exceptions.RuntimeException <|-- com.PendencySystem.exceptions.NotFoundException
+com.PendencySystem.repository.interfaces.TagRepository <|.. com.PendencySystem.repository.impl.TagRepositoryImpl
+com.PendencySystem.repository.interfaces.TransactionRepository <|.. com.PendencySystem.repository.impl.TransactionRepositoryImpl
+com.PendencySystem.service.interfaces.PendencyManagementService <|.. com.PendencySystem.service.impl.PendencyManagementServiceImpl
+@enduml
