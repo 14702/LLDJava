@@ -4,6 +4,8 @@ import com.AppVersionManagementSystem.model.AppVersionDetails;
 import com.AppVersionManagementSystem.model.Version;
 
 public interface AppVersionDetailsRepository {
-    void uploadNewVersion(AppVersionDetails appVersionDetails);
-    Version getLatestVersion();
+    void save(AppVersionDetails appVersionDetails);
+    AppVersionDetails getByVersion(Version version);
+    AppVersionDetails getLatestVersion();
+    boolean exists(Version version);
 }

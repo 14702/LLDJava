@@ -1,76 +1,33 @@
 package com.AppVersionManagementSystem.repository.impl;
 
-import com.AppVersionManagementSystem.enums.DeviceType;
-import com.AppVersionManagementSystem.model.AppVersionDetails;
 import com.AppVersionManagementSystem.model.Device;
-import com.AppVersionManagementSystem.model.Version;
 import com.AppVersionManagementSystem.repository.interfaces.DeviceRepository;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalDeviceRepository implements DeviceRepository {
-    private final Map<String, Device> deviceCache;
 
-    public LocalDeviceRepository() {
-        this.deviceCache = new HashMap<>();
-    }
-
+    private final ConcurrentHashMap<String, Device> deviceCache = new ConcurrentHashMap<>();
 
     @Override
-    public void update(Device device, AppVersionDetails appVersionDetails, String diff) {
-        if (!isAppVersionSupported(device, appVersionDetails)) {
-            System.out.println("Cannot update to version " + appVersionDetails.getVersion().toString() + " because OS version is not supported for device id " + device.getId());
-            return;
-        }
-        if (deviceCache.containsKey(device.getId())) {
-            Device deviceToUpdate = deviceCache.get(device.getId());
-            deviceToUpdate.setAppVersion(appVersionDetails.getVersion());
-            System.out.println("Device " + device.getId() + " is successfully updated with app version " + appVersionDetails.getVersion() + " and diff " + diff);
-        } else {
-            device.setAppVersion(appVersionDetails.getVersion());
-            deviceCache.put(device.getId(), device);
-            System.out.println("Device " + device.getId() + " is successfully installed with app version " + appVersionDetails.getVersion() + " and diff " + diff);
-        }
-    }
-
     public void addDevice(Device device) {
-        if (deviceCache.containsKey(device.getId())) {
-            return;
-        }
         deviceCache.put(device.getId(), device);
     }
 
     @Override
-    public boolean checkForInstall(Device device, AppVersionDetails appVersionDetails) {
-        return isAppVersionSupported(device, appVersionDetails);
-    }
-
-    @Override
-    public boolean checkForUpdates(Device device, AppVersionDetails appVersionDetails) {
-        return isAppVersionSupported(device, appVersionDetails);
-    }
-
-    private boolean isAppVersionSupported(Device device, AppVersionDetails appVersionDetails) {
-        if (device.getDeviceType() == DeviceType.IOS) {
-            Version minOSVersion = appVersionDetails.getAppMetaData().getMinimumSupportedIOSVersion();
-            Version osVersion = device.getoSVersion();
-            return minOSVersion.getMajorVersion() <= osVersion.getMajorVersion() &&
-                    minOSVersion.getMinorVersion() <= osVersion.getMinorVersion() &&
-                    minOSVersion.getPatchVersion() <= osVersion.getPatchVersion();
-        } else if (device.getDeviceType() == DeviceType.ANDROID) {
-            Version minOSVersion = appVersionDetails.getAppMetaData().getMinimumSupportedAndroidVersion();
-            Version osVersion = device.getoSVersion();
-            return minOSVersion.getMajorVersion() <= osVersion.getMajorVersion() &&
-                    minOSVersion.getMinorVersion() <= osVersion.getMinorVersion() &&
-                    minOSVersion.getPatchVersion() <= osVersion.getPatchVersion();
-        }
-        return false;
+    public Device getById(String deviceId) {
+        return deviceCache.get(deviceId);
     }
 
     @Override
     public List<Device> getAllDevices() {
-        return deviceCache.values().stream().toList();
+        return new ArrayList<>(deviceCache.values());
+    }
+
+    @Override
+    public boolean exists(String deviceId) {
+        return deviceCache.containsKey(deviceId);
     }
 }

@@ -1,7 +1,10 @@
 package com.AppVersionManagementSystem.strategy.interfaces;
 
-import com.AppVersionManagementSystem.model.AppVersionDetails;
+import com.AppVersionManagementSystem.model.Device;
+
+import java.util.List;
 
 public interface RolloutStrategy {
-    void rollout(AppVersionDetails appVersionDetails);
+    List<Device> getEligibleDevices();
+    boolean isDeviceEligible(Device device);
 }

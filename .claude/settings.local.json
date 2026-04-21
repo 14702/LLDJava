@@ -15,7 +15,22 @@
       "Bash(export JAVA_HOME=\"/c/Program Files/RedHat/java-11-openjdk-11.0.3-1\")",
       "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
       "Bash(java -cp out com.Hackathon.src.Main)",
-      "Bash(xargs javac *)"
+      "Bash(xargs javac *)",
+      "Bash(where javac *)",
+      "Bash(where java *)",
+      "Read(//c/Program Files/**)",
+      "Bash(\"C:/Program Files/RedHat/java-11-openjdk-11.0.3-1/bin/javac\" --version)",
+      "Bash(xargs -0 \"C:/Program Files/RedHat/java-11-openjdk-11.0.3-1/bin/javac\" -d /tmp/appversion_out -sourcepath src)",
+      "Bash(xargs -0 \"C:/Program Files/RedHat/java-11-openjdk-11.0.3-1/bin/javac\" -d /tmp/all_out -sourcepath src)",
+      "Bash(javac -d out src/com/AppVersionManagementSystem/enums/*.java src/com/AppVersionManagementSystem/model/*.java src/com/AppVersionManagementSystem/repository/interfaces/*.java src/com/AppVersionManagementSystem/repository/impl/*.java src/com/AppVersionManagementSystem/utility/*.java src/com/AppVersionManagementSystem/strategy/interfaces/*.java src/com/AppVersionManagementSystem/strategy/Impl/*.java src/com/AppVersionManagementSystem/service/interfaces/*.java src/com/AppVersionManagementSystem/service/impl/*.java src/com/AppVersionManagementSystem/Main.java)",
+      "Bash(cmd.exe /c \"where java\")",
+      "Bash(cmd.exe /c \"where javac\")",
+      "Bash(javac -version)",
+      "Bash(java -cp out com.AppVersionManagementSystem.Main)",
+      "Bash(java -cp out com.AppVersionManagementSystem.test.TestRunner)",
+      "Bash(javac -d out src/com/AppVersionManagementSystem/enums/*.java src/com/AppVersionManagementSystem/model/*.java src/com/AppVersionManagementSystem/repository/interfaces/*.java src/com/AppVersionManagementSystem/repository/impl/*.java src/com/AppVersionManagementSystem/service/interfaces/*.java src/com/AppVersionManagementSystem/service/impl/*.java src/com/AppVersionManagementSystem/strategy/interfaces/*.java src/com/AppVersionManagementSystem/strategy/Impl/*.java src/com/AppVersionManagementSystem/test/*.java src/com/AppVersionManagementSystem/Main.java)",
+      "Bash(time java *)",
+      "Bash(javac -d out 'src/com/AppVersionManagementSystem/enums/*.java' 'src/com/AppVersionManagementSystem/model/*.java' 'src/com/AppVersionManagementSystem/repository/interfaces/*.java' 'src/com/AppVersionManagementSystem/repository/impl/*.java' 'src/com/AppVersionManagementSystem/service/interfaces/*.java' 'src/com/AppVersionManagementSystem/service/impl/*.java' 'src/com/AppVersionManagementSystem/strategy/interfaces/*.java' 'src/com/AppVersionManagementSystem/strategy/impl/*.java' 'src/com/AppVersionManagementSystem/test/*.java' src/com/AppVersionManagementSystem/Main.java)"
     ]
   }
 }

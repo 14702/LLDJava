@@ -1,28 +1,35 @@
-package com.AppVersionManagementSystem.strategy.Impl;
+package com.AppVersionManagementSystem.strategy.impl;
 
-import com.AppVersionManagementSystem.model.AppVersionDetails;
+import com.AppVersionManagementSystem.model.Device;
 import com.AppVersionManagementSystem.repository.interfaces.DeviceRepository;
 import com.AppVersionManagementSystem.strategy.interfaces.RolloutStrategy;
-import com.AppVersionManagementSystem.utility.AppUtility;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BetaRolloutStrategy implements RolloutStrategy {
 
     private final DeviceRepository deviceRepository;
+    private final Set<String> betaDeviceIds;
 
-    public BetaRolloutStrategy(DeviceRepository deviceRepository) {
+    public BetaRolloutStrategy(DeviceRepository deviceRepository, Set<String> betaDeviceIds) {
         this.deviceRepository = deviceRepository;
+        this.betaDeviceIds = Collections.unmodifiableSet(new HashSet<>(betaDeviceIds));
     }
 
     @Override
-    public void rollout(AppVersionDetails appVersionDetails) {
-        System.out.println(deviceRepository.getAllDevices());
-        deviceRepository
-                .getAllDevices()
+    public List<Device> getEligibleDevices() {
+        return deviceRepository.getAllDevices()
                 .stream()
-                .filter(d -> d.isBetaVersionEnabled())
-                .forEach( d -> {
-                    String diff = AppUtility.createDiffPack(d.getAppVersion(), appVersionDetails.getVersion());
-                    deviceRepository.update(d, appVersionDetails, diff);
-                });
+                .filter(this::isDeviceEligible)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isDeviceEligible(Device device) {
+        return device.isBetaEnabled() || betaDeviceIds.contains(device.getId());
     }
 }
