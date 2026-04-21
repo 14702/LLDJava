@@ -7,7 +7,7 @@ import com.Wallet.exceptions.NoWalletFoundException;
 import com.Wallet.model.Wallet;
 
 public class WalletData {
-    Map<String, Wallet> walletIdToWallet = new HashMap();
+    Map<String, Wallet> walletIdToWallet = new HashMap<>();
     Map<String, String> userIdToWalletId = new HashMap<>();
 
     public Wallet getWalletByUserId(String userId){

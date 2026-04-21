@@ -14,7 +14,6 @@ public class GameServiceImpl implements GameService {
     int size;
     private Integer numOfDice;
     private Map<Integer, Player> res = new HashMap<>();
-    private int winnerCount;
     private Strategy strategy;
 
 
@@ -71,7 +70,6 @@ public class GameServiceImpl implements GameService {
                 }
 
                 if (pos == size) {
-                    winnerCount++;
                     player.setPosition(pos);
                     player.setStatus(PlayerStatus.WIN);
                     System.out.println("Player "+ player.getId() + " : Won.");

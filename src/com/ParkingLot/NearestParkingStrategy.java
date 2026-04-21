@@ -1,5 +1,5 @@
 package com.ParkingLot;
-import java.util.List;
+
 public class NearestParkingStrategy implements ParkingStrategy{
     int spot;
     @Override

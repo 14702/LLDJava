@@ -1,6 +1,7 @@
 package com.CustomerIssueResolutionSystem.service.impl;
 
 import com.CustomerIssueResolutionSystem.enums.IssueStatus;
+import com.CustomerIssueResolutionSystem.enums.IssueType;
 import com.CustomerIssueResolutionSystem.exceptions.AgentNotFoundException;
 import com.CustomerIssueResolutionSystem.exceptions.InvalidInputException;
 import com.CustomerIssueResolutionSystem.model.Agent;
@@ -8,7 +9,6 @@ import com.CustomerIssueResolutionSystem.model.Issue;
 import com.CustomerIssueResolutionSystem.repository.AgentRepository;
 import com.CustomerIssueResolutionSystem.service.interfaces.AgentService;
 import com.CustomerIssueResolutionSystem.strategy.interfaces.AgentAssignmentStrategy;
-import com.CustomerIssueResolutionSystem.strategy.impl.SimpleAgentAssignmentStrategy;
 
 import java.util.*;
 
@@ -57,7 +57,6 @@ public class AgentServiceImpl implements AgentService {
     // use strategy to get agent
     @Override
     public void assignIssue (Issue issue) throws InvalidInputException {
-        Map<String, Agent> agents = agentRepository.getAgents();
         if(issue == null)
             throw new InvalidInputException("Issue cant be assigned as its not created yet");
 

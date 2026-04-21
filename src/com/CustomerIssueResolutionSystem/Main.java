@@ -58,8 +58,12 @@ public class Main {
         issueService.getIssues(IssueType.PAYMENT_RELATED);          // + create 2 menthod, once filter by type and once by email
 
         // Filter using builder
-        Map<String, String> filter = new IssueFilterBuilder().byEmail("testUser2@test.com").build();                // + advance filtering usign builder pattern
-        //pass this filter to getIssue
+        Map<String, String> filter = new IssueFilterBuilder().byEmail("testUser2@test.com").build();
+        try {
+            issueService.getIssuesByFilter(filter);
+        } catch (InvalidInputException e) {
+            System.out.println(e.getMessage());
+        }
 
         // Updating the issue
         try{

@@ -1,7 +1,5 @@
 package com.CustomerIssueResolutionSystem.model;
 
-import com.CustomerIssueResolutionSystem.enums.IssueType;
-
 import java.util.HashMap;
 import java.util.Map;
 

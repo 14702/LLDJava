@@ -11,8 +11,7 @@ public class Main {
 
         Vehicle veh1 = new Vehicle(1, VehicleType.TWO);
         Vehicle veh2 = new Vehicle(2, VehicleType.TWO);
-        Vehicle veh3 = new Vehicle(3, VehicleType.TWO);
-        Vehicle veh4 = new Vehicle(4, VehicleType.TWO);
+
 
         Ticket ticket1 = parkingLot.generateTicket(veh1);
         Ticket ticket2= parkingLot.generateTicket(veh2);

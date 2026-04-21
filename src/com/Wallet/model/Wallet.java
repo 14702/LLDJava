@@ -1,5 +1,4 @@
 package com.Wallet.model;
-import java.util.List;
 
 public class Wallet {
     String walletId;

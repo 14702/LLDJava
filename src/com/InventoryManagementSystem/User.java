@@ -1,5 +1,5 @@
 package com.InventoryManagementSystem;
-import java.util.List;
+
 
 public class User {
     public int id;

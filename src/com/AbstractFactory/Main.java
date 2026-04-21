@@ -8,10 +8,9 @@ public class Main{
     public static void main (String [] args){
         // Create new factory
         FactoryofFactory factory = null; // init abstract handle
-        Scanner sc = new Scanner(System.in);
-
-        System.out.println("Input Type of Factory ");
-        String type = sc.nextLine();
+        try (Scanner sc = new Scanner(System.in)) {
+            System.out.println("Input Type of Factory ");
+            String type = sc.nextLine();
 
         if(type.isEmpty()){
             System.out.println("invalid factory name");
@@ -29,10 +28,11 @@ public class Main{
             }
         }
 
-        Vehicle veh = factory.createVehicle("bike");
-        veh.drive();
-        // Create veh from those factories
+            Vehicle veh = factory.createVehicle("bike");
+            veh.drive();
+            // Create veh from those factories
 
-        // Drive the veh
+            // Drive the veh
+        }
     }
 }

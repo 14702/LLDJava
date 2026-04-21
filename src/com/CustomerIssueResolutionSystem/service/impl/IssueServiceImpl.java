@@ -9,7 +9,7 @@ import com.CustomerIssueResolutionSystem.repository.IssueRepository;
 import com.CustomerIssueResolutionSystem.model.Issue;
 import com.CustomerIssueResolutionSystem.model.Agent;
 import com.CustomerIssueResolutionSystem.service.interfaces.IssueService;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;

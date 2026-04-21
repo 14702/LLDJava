@@ -4,7 +4,6 @@ import com.SnakeAndLadder.enums.ElementType;
 
 public class SnakeMove extends Move {
 
-    private Integer start;
     private Integer end;
 
     SnakeMove(ElementType elementType) {
@@ -22,7 +21,6 @@ public class SnakeMove extends Move {
         if (end >= start) {
             return false;
         } else {
-            this.start = start;
             this.end = end;
         }
         return true;

@@ -1,6 +1,6 @@
 package com.Wallet.model;
 import java.sql.Timestamp;
-import java.util.UUID;
+
 
 import com.Wallet.enums.PaymentMode;
 import com.Wallet.enums.TransactionType;

@@ -67,7 +67,7 @@ public class Main {
 
         appService.releaseVersion(appVersionDetails);
 
-        String diff = appService.createUpdatePatch(appVersionDetails, appVersionDetails2);
+        appService.createUpdatePatch(appVersionDetails, appVersionDetails2);
 
         appService.uploadNewVersion(appVersionDetails2);
         System.out.println(appService.checkForUpdates(device1, appVersionDetails2));
