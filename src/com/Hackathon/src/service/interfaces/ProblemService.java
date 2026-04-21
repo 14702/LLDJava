@@ -5,13 +5,12 @@ import com.Hackathon.src.model.Problem;
 import com.Hackathon.src.strategy.interfaces.ProblemFilterStrategy;
 import com.Hackathon.src.strategy.interfaces.ProblemSortStrategy;
 
+import java.util.List;
+
 public interface ProblemService {
-    Problem addProblem(String description, String tagName, Difficulty problemDifficulty, int score);
-
-    void viewSortedProblems(ProblemSortStrategy problemSortStrategy);
-
-    void viewFilteredProblems(ProblemFilterStrategy filterStrategy);
-    void getUserCountForProblem(Problem problem);
-
-    void getMostLikedProblemByTag(ProblemFilterStrategy filterStrategy);
+    Problem addProblem(String description, String tag, Difficulty difficulty, int score);
+    List<Problem> fetchProblems(ProblemFilterStrategy filter, ProblemSortStrategy sort);
+    void getUserCountForProblem(String problemId);
+    void getAvgSolveTime(String problemId);
+    List<Problem> getTopNProblems(int n, String tag);
 }

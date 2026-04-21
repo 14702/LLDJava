@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hackathon Platform - Architecture</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body { background: #fff; font-family: Arial; padding: 20px; }
+        h2 { text-align: center; color: #333; }
+        .mermaid { display: flex; justify-content: center; }
+    </style>
+</head>
+<body>
+<h2>Hackathon Platform - Class Architecture</h2>
+<div class="mermaid">
+classDiagram
+    direction TB
+
+    class Main {
+        +main(String[] args)
+    }
+
+    %% --- ENUMS ---
+    class Difficulty {
+        <<enum>>
+        EASY(1)
+        MEDIUM(2)
+        HARD(3)
+        +getLevel() int
+    }
+    class Status {
+        <<enum>>
+        UNSOLVED
+        SOLVED
+    }
+
+    %% --- MODELS ---
+    class Problem {
+        -String id
+        -String description
+        -String tag
+        -Difficulty difficulty
+        -int score
+        -Status status
+        -AtomicInteger solvedCount
+        -AtomicLong totalSolveTimeMs
+        -AtomicInteger likes
+        +recordSolve(long timeMs)
+        +getAvgSolveTimeSec() double
+        +addLike()
+    }
+    class User {
+        -String id
+        -String name
+        -String department
+        -String email
+        -List~SolveRecord~ solveHistory
+        -AtomicInteger currentScore
+        +recordSolve(String problemId, long timeMs, int score)
+    }
+    class SolveRecord {
+        -String problemId
+        -long timeTakenMs
+    }
+
+    %% --- EXCEPTIONS ---
+    class ProblemNotFoundException {
+        <<exception>>
+    }
+    class UserNotFoundException {
+        <<exception>>
+    }
+    class DuplicateEntityException {
+        <<exception>>
+    }
+
+    %% --- REPOSITORY INTERFACES ---
+    class ProblemRepository {
+        <<interface>>
+        +addProblem(Problem)
+        +getById(String) Problem
+        +getAll() List~Problem~
+    }
+    class UserRepository {
+        <<interface>>
+        +addUser(User)
+        +getByEmail(String) User
+        +getAll() List~User~
+    }
+
+    %% --- REPOSITORY IMPLS ---
+    class ProblemRepositoryImpl {
+        -ConcurrentHashMap store
+    }
+    class UserRepositoryImpl {
+        -ConcurrentHashMap store
+    }
+
+    %% --- STRATEGY INTERFACES ---
+    class ProblemFilterStrategy {
+        <<interface>>
+        +filter(List~Problem~) List~Problem~
+    }
+    class ProblemSortStrategy {
+        <<interface>>
+        +sort(List~Problem~)
+    }
+    class ScoringStrategy {
+        <<interface>>
+        +calculateScore(Problem, long) int
+    }
+    class RecommendationStrategy {
+        <<interface>>
+        +recommend(Problem, List, Set, int) List~Problem~
+    }
+
+    %% --- STRATEGY IMPLS ---
+    class DifficultyFilterStrategyImpl
+    class TagFilterStrategyImpl
+    class ScoreSortStrategyImpl
+    class DifficultySortStrategyImpl
+    class SolveCountSortStrategyImpl
+    class StandardScoringStrategy
+    class TimeWeightedScoringStrategy
+    class TagBasedRecommendationStrategy
+    class PopularityRecommendationStrategy
+
+    %% --- SERVICE INTERFACES ---
+    class ProblemService {
+        <<interface>>
+        +addProblem() Problem
+        +fetchProblems(filter, sort) List
+        +getUserCountForProblem(id)
+        +getAvgSolveTime(id)
+        +getTopNProblems(n, tag) List
+    }
+    class UserService {
+        <<interface>>
+        +addUser(name, dept, email)
+        +solve(email, problemId, timeMs) List
+        +fetchSolvedProblems(email) List
+        +getLeader() User
+        +getLeaderboard(n) List
+        +getDepartmentLeaderboard(n) List
+    }
+
+    %% --- SERVICE IMPLS ---
+    class ProblemServiceImpl {
+        -ProblemRepository repo
+    }
+    class UserServiceImpl {
+        -UserRepository userRepo
+        -ProblemRepository problemRepo
+        -ScoringStrategy scoring
+        -RecommendationStrategy recommendation
+    }
+
+    %% --- RELATIONSHIPS ---
+    Problem --> Difficulty
+    Problem --> Status
+    User --> SolveRecord
+
+    ProblemRepositoryImpl ..|> ProblemRepository
+    UserRepositoryImpl ..|> UserRepository
+
+    DifficultyFilterStrategyImpl ..|> ProblemFilterStrategy
+    TagFilterStrategyImpl ..|> ProblemFilterStrategy
+    ScoreSortStrategyImpl ..|> ProblemSortStrategy
+    DifficultySortStrategyImpl ..|> ProblemSortStrategy
+    SolveCountSortStrategyImpl ..|> ProblemSortStrategy
+    StandardScoringStrategy ..|> ScoringStrategy
+    TimeWeightedScoringStrategy ..|> ScoringStrategy
+    TagBasedRecommendationStrategy ..|> RecommendationStrategy
+    PopularityRecommendationStrategy ..|> RecommendationStrategy
+
+    ProblemServiceImpl ..|> ProblemService
+    UserServiceImpl ..|> UserService
+
+    ProblemServiceImpl --> ProblemRepository
+    UserServiceImpl --> UserRepository
+    UserServiceImpl --> ProblemRepository
+    UserServiceImpl --> ScoringStrategy
+    UserServiceImpl --> RecommendationStrategy
+
+    Main --> ProblemService
+    Main --> UserService
+</div>
+
+<h2>Layer Overview</h2>
+<div class="mermaid">
+graph TB
+    subgraph Entry
+        M[Main.java]
+    end
+    subgraph Service Layer
+        PS[ProblemService]
+        US[UserService]
+    end
+    subgraph Strategy Layer
+        F[FilterStrategy<br>Difficulty / Tag]
+        S[SortStrategy<br>Score / Difficulty / SolveCount]
+        SC[ScoringStrategy<br>Standard / TimeWeighted]
+        R[RecommendationStrategy<br>TagBased / Popularity]
+    end
+    subgraph Repository Layer
+        PR[ProblemRepository]
+        UR[UserRepository]
+    end
+    subgraph Model Layer
+        P[Problem]
+        U[User]
+        SR[SolveRecord]
+    end
+
+    M --> PS
+    M --> US
+    PS --> F
+    PS --> S
+    US --> SC
+    US --> R
+    PS --> PR
+    US --> PR
+    US --> UR
+    PR --> P
+    UR --> U
+    U --> SR
+
+    style Entry fill:#e1f5fe
+    style F fill:#fff9c4
+    style S fill:#fff9c4
+    style SC fill:#fff9c4
+    style R fill:#fff9c4
+    style PR fill:#c8e6c9
+    style UR fill:#c8e6c9
+    style P fill:#f3e5f5
+    style U fill:#f3e5f5
+    style SR fill:#f3e5f5
+    style PS fill:#ffe0b2
+    style US fill:#ffe0b2
+</div>
+</body>
+</html>

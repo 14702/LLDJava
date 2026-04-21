@@ -6,9 +6,9 @@ import com.Hackathon.src.strategy.interfaces.ProblemSortStrategy;
 import java.util.Comparator;
 import java.util.List;
 
-public class ScoreSortStrategyImpl implements ProblemSortStrategy {
+public class SolveCountSortStrategyImpl implements ProblemSortStrategy {
     @Override
     public void sort(List<Problem> problems) {
-        problems.sort(Comparator.comparingInt(Problem::getScore).reversed());
+        problems.sort(Comparator.comparingInt(Problem::getSolvedCount).reversed());
     }
 }

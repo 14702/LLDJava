@@ -1,82 +1,98 @@
 package com.Hackathon.src.service.impl;
 
-import com.Hackathon.src.enums.Status;
 import com.Hackathon.src.model.Problem;
+import com.Hackathon.src.model.SolveRecord;
 import com.Hackathon.src.model.User;
+import com.Hackathon.src.repository.interfaces.ProblemRepository;
 import com.Hackathon.src.repository.interfaces.UserRepository;
-import com.Hackathon.src.repository.impl.UserRepositoryImpl;
 import com.Hackathon.src.service.interfaces.UserService;
+import com.Hackathon.src.strategy.interfaces.RecommendationStrategy;
+import com.Hackathon.src.strategy.interfaces.ScoringStrategy;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
-
-import static com.Hackathon.src.constants.AppConstant.PROBLEMS_SOLVED_BY_USER;
-import static com.Hackathon.src.constants.AppConstant.USER_NOT_FOUND;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class UserServiceImpl implements UserService {
-
-    private static UserService instance;
     private final UserRepository userRepository;
+    private final ProblemRepository problemRepository;
+    private final ScoringStrategy scoringStrategy;
+    private final RecommendationStrategy recommendationStrategy;
 
-    public static UserService getInstance() {
-        if (instance == null) {
-            instance = new UserServiceImpl();
+    public UserServiceImpl(UserRepository userRepository, ProblemRepository problemRepository,
+                           ScoringStrategy scoringStrategy, RecommendationStrategy recommendationStrategy) {
+        this.userRepository = userRepository;
+        this.problemRepository = problemRepository;
+        this.scoringStrategy = scoringStrategy;
+        this.recommendationStrategy = recommendationStrategy;
+    }
+
+    @Override
+    public void addUser(String name, String department, String email) {
+        User user = new User(name, department, email);
+        userRepository.addUser(user);
+        System.out.println("User registered: " + user.getId() + " - " + name + " [" + department + "]");
+    }
+
+    @Override
+    public List<Problem> solve(String email, String problemId, long timeTakenMs) {
+        User user = userRepository.getByEmail(email);
+        Problem problem = problemRepository.getById(problemId);
+
+        boolean alreadySolved = user.getSolveHistory().stream()
+                .anyMatch(r -> r.getProblemId().equals(problemId));
+        if (alreadySolved) {
+            System.out.println(user.getName() + " already solved " + problem.getDescription());
+            return Collections.emptyList();
         }
-        return  instance;
-    }
 
-    public UserServiceImpl() {
-        userRepository = new UserRepositoryImpl();
-    }
+        int awarded = scoringStrategy.calculateScore(problem, timeTakenMs);
+        problem.recordSolve(timeTakenMs);
+        user.recordSolve(problemId, timeTakenMs, awarded);
+        System.out.printf("%s solved %s in %.1fs -> +%d points (total: %d)%n",
+                user.getName(), problem.getDescription(), timeTakenMs / 1000.0,
+                awarded, user.getCurrentScore());
 
-    @Override
-    public void addUser(String name, String departmentName, String email) {
-        User user = new User(generateId(), name, departmentName, email);
-        userRepository.registerUser(user);
-
-    }
-
-    @Override
-    public void solveProblem(String id, Problem problem) {
-        User user = getUser(id);
-        if (user == null) {
-            throw new IllegalArgumentException(USER_NOT_FOUND + id);
-        }
-        problem.setSolvedCount(problem.getSolvedCount() + 1); 
-        problem.setProblemStatus(Status.SOLVED);
-        user.getSolvedProblems().add(problem);
-        user.setCurrentScore(user.getCurrentScore() + problem.getScore());
-//        getRecommendation(problem.getTag());
-    }
-
-
-    private User getUser(String id) {
-        return userRepository.getUserById(id);
+        Set<String> solvedIds = user.getSolveHistory().stream()
+                .map(SolveRecord::getProblemId)
+                .collect(Collectors.toSet());
+        return recommendationStrategy.recommend(problem, problemRepository.getAll(), solvedIds, 5);
     }
 
     @Override
-    public void viewUserSolvedProblems(String id) {
-        User user = getUser(id);
-        if (user == null) {
-            throw new IllegalArgumentException(USER_NOT_FOUND + id);
-        }
-        System.out.println(PROBLEMS_SOLVED_BY_USER + user.getName() + ":");
-        ProblemServiceImpl.printProblems(user.getSolvedProblems());
+    public List<Problem> fetchSolvedProblems(String email) {
+        User user = userRepository.getByEmail(email);
+        return user.getSolveHistory().stream()
+                .map(r -> problemRepository.getById(r.getProblemId()))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public User getCurrentLeaderOfContest() {
-        return getAllUsers().stream()
+    public User getLeader() {
+        return userRepository.getAll().stream()
                 .max(Comparator.comparingInt(User::getCurrentScore))
-                .orElse(null);
+                .orElseThrow(() -> new IllegalStateException("No users registered"));
     }
 
-    private List<User> getAllUsers() {
-        return userRepository.getAllUsers();
+    @Override
+    public List<User> getLeaderboard(int topN) {
+        return userRepository.getAll().stream()
+                .sorted(Comparator.comparingInt(User::getCurrentScore).reversed()
+                        .thenComparing(User::getName))
+                .limit(topN)
+                .collect(Collectors.toList());
     }
 
-    private String generateId() {
-        return UUID.randomUUID().toString();
+    @Override
+    public List<String> getDepartmentLeaderboard(int topN) {
+        Map<String, Integer> deptScores = new LinkedHashMap<>();
+        for (User u : userRepository.getAll()) {
+            deptScores.merge(u.getDepartment(), u.getCurrentScore(), Integer::sum);
+        }
+        return deptScores.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
+                        .thenComparing(Map.Entry::getKey))
+                .limit(topN)
+                .map(e -> e.getKey() + ": " + e.getValue())
+                .collect(Collectors.toList());
     }
 }

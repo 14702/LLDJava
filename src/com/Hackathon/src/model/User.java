@@ -1,70 +1,41 @@
 package com.Hackathon.src.model;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class User {
-    private String id;
-    private String name;
-    private String email;
-    private String departmentName;
-    private List<Problem> solvedProblems;
-    private int currentScore;
+    private static final AtomicInteger ID_GEN = new AtomicInteger(1);
 
-    public User(String id, String name, String departmentName, String email) {
-        this.id = id;
+    private final String id;
+    private final String name;
+    private final String department;
+    private final String email;
+    private final List<SolveRecord> solveHistory;
+    private final AtomicInteger currentScore;
+
+    public User(String name, String department, String email) {
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("Name required");
+        if (department == null || department.isBlank()) throw new IllegalArgumentException("Department required");
+        if (email == null || email.isBlank()) throw new IllegalArgumentException("Email required");
+
+        this.id = "U" + ID_GEN.getAndIncrement();
         this.name = name;
-        this.departmentName = departmentName;
+        this.department = department;
         this.email = email;
-        solvedProblems = new ArrayList<>();
-        currentScore = 0;
+        this.solveHistory = new CopyOnWriteArrayList<>();
+        this.currentScore = new AtomicInteger(0);
     }
 
-    public String getId() {
-        return id;
+    public void recordSolve(String problemId, long timeTakenMs, int score) {
+        solveHistory.add(new SolveRecord(problemId, timeTakenMs));
+        currentScore.addAndGet(score);
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDepartmentName() {
-        return departmentName;
-    }
-
-    public void setDepartmentName(String departmentName) {
-        this.departmentName = departmentName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public List<Problem> getSolvedProblems() {
-        return solvedProblems;
-    }
-
-    public void setSolvedProblems(List<Problem> solvedProblems) {
-        this.solvedProblems = solvedProblems;
-    }
-
-    public int getCurrentScore() {
-        return currentScore;
-    }
-
-    public void setCurrentScore(int currentScore) {
-        this.currentScore = currentScore;
-    }
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public String getDepartment() { return department; }
+    public String getEmail() { return email; }
+    public List<SolveRecord> getSolveHistory() { return solveHistory; }
+    public int getCurrentScore() { return currentScore.get(); }
 }

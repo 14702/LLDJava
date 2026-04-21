@@ -1,34 +1,33 @@
 package com.Hackathon.src.repository.impl;
 
+import com.Hackathon.src.exceptions.DuplicateEntityException;
+import com.Hackathon.src.exceptions.UserNotFoundException;
 import com.Hackathon.src.model.User;
 import com.Hackathon.src.repository.interfaces.UserRepository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class UserRepositoryImpl implements UserRepository {
+    private final ConcurrentHashMap<String, User> store = new ConcurrentHashMap<>();
 
-    private final Map<String, User> userDatabase;
-
-    public UserRepositoryImpl() {
-        userDatabase = new HashMap<>();
+    @Override
+    public void addUser(User user) {
+        if (store.putIfAbsent(user.getEmail(), user) != null) {
+            throw new DuplicateEntityException("User already registered: " + user.getEmail());
+        }
     }
 
     @Override
-    public void registerUser(User user) {
-        System.out.println("Adding New User: "+ user.getName());
-        userDatabase.put(user.getEmail(), user);
+    public User getByEmail(String email) {
+        User u = store.get(email);
+        if (u == null) throw new UserNotFoundException("User not found: " + email);
+        return u;
     }
 
     @Override
-    public User getUserById(String id) {
-        return userDatabase.get(id);
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        return new ArrayList<>(userDatabase.values());
+    public List<User> getAll() {
+        return new ArrayList<>(store.values());
     }
 }

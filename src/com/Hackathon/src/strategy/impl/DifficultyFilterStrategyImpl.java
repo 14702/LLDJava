@@ -5,21 +5,19 @@ import com.Hackathon.src.model.Problem;
 import com.Hackathon.src.strategy.interfaces.ProblemFilterStrategy;
 
 import java.util.List;
-
-import static com.Hackathon.src.constants.AppConstant.FILTERING_BY_DIFFICULTY;
+import java.util.stream.Collectors;
 
 public class DifficultyFilterStrategyImpl implements ProblemFilterStrategy {
-
     private final Difficulty difficulty;
 
     public DifficultyFilterStrategyImpl(Difficulty difficulty) {
         this.difficulty = difficulty;
     }
 
+    @Override
     public List<Problem> filter(List<Problem> problems) {
-        System.out.println(FILTERING_BY_DIFFICULTY + difficulty);
         return problems.stream()
-                .filter(p -> p.getProblemDifficulty() == difficulty)
-                .toList();
+                .filter(p -> p.getDifficulty() == difficulty)
+                .collect(Collectors.toList());
     }
 }

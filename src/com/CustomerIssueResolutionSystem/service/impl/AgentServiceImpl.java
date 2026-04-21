@@ -10,14 +10,18 @@ import com.CustomerIssueResolutionSystem.repository.AgentRepository;
 import com.CustomerIssueResolutionSystem.service.interfaces.AgentService;
 import com.CustomerIssueResolutionSystem.strategy.interfaces.AgentAssignmentStrategy;
 
+import com.CustomerIssueResolutionSystem.repository.IssueRepository;
+
 import java.util.*;
 
 public class AgentServiceImpl implements AgentService {
     AgentRepository agentRepository;
+    IssueRepository issueRepository;
     AgentAssignmentStrategy agentAssignmentStrategy;
 
-    public AgentServiceImpl(AgentRepository agentRepository, AgentAssignmentStrategy agentAssignmentStrategy){
+    public AgentServiceImpl(AgentRepository agentRepository, IssueRepository issueRepository, AgentAssignmentStrategy agentAssignmentStrategy){
         this.agentRepository = agentRepository;
+        this.issueRepository = issueRepository;
         this.agentAssignmentStrategy = agentAssignmentStrategy;
     }
 
@@ -42,29 +46,23 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    //desc: viewAgentsWorkHistory() //A1 -> {I1, I3}, A2 -> {I2} Time Duration
     @Override
     public void viewAgentsWorkHistory(){
         for(Agent agent : agentRepository.getAgents().values()){
-            System.out.println(agent.getAgentId() + " -> {" );
-            for(String issueId : agent.getWorkingHistory()){
-                System.out.println(issueId + " ");
-            }
-            System.out.println("}");
+            System.out.println(agent.getAgentId() + " -> {" + String.join(", ", agent.getWorkingHistory()) + "}");
         }
     }
 
-    // use strategy to get agent
     @Override
-    public void assignIssue (Issue issue) throws InvalidInputException {
+    public void assignIssue (String issueId) throws InvalidInputException {
+        if(issueId == null || issueId.trim().isEmpty())
+            throw new InvalidInputException("Issue ID cannot be null or empty");
+
+        Issue issue = issueRepository.getIssueById(issueId);
         if(issue == null)
-            throw new InvalidInputException("Issue cant be assigned as its not created yet");
+            throw new InvalidInputException("Issue not found for ID: " + issueId);
 
         agentAssignmentStrategy.assignAgent(issue, agentRepository.getAgents());
-
-        /*if(issue.getAgentID().isEmpty())
-            throw new InvalidInputException("No expert agents are available");*/
-
     }
 
     @Override
@@ -83,7 +81,7 @@ public class AgentServiceImpl implements AgentService {
             currentIssue.setIssueStatus(IssueStatus.OPEN);
             currentIssue.setAgentID("");
             try{
-                assignIssue(currentIssue);
+                assignIssue(currentIssue.getIssueId());
             } catch (InvalidInputException e){
                 System.out.println("Could not reassign issue " + currentIssue.getIssueId() + ": " + e.getMessage());
             }
@@ -96,7 +94,7 @@ public class AgentServiceImpl implements AgentService {
             waitingIssue.setIssueStatus(IssueStatus.OPEN);
             waitingIssue.setAgentID("");
             try{
-                assignIssue(waitingIssue);
+                assignIssue(waitingIssue.getIssueId());
             } catch (InvalidInputException e){
                 System.out.println("Could not reassign waiting issue " + waitingIssue.getIssueId() + ": " + e.getMessage());
             }
@@ -136,7 +134,7 @@ public class AgentServiceImpl implements AgentService {
                 currIssue.setIssueStatus(IssueStatus.OPEN);
                 currIssue.setAgentID("");
                 try{
-                    assignIssue(currIssue);
+                    assignIssue(currIssue.getIssueId());
                 } catch (InvalidInputException e){
                     System.out.println("Could not reassign issue: " + e.getMessage());
                 }
@@ -161,7 +159,7 @@ public class AgentServiceImpl implements AgentService {
             issue.setIssueStatus(IssueStatus.OPEN);
             issue.setAgentID("");
             try{
-                assignIssue(issue);
+                assignIssue(issue.getIssueId());
             } catch (InvalidInputException e){
                 System.out.println("Could not reassign waiting issue: " + e.getMessage());
             }
