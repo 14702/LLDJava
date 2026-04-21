@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>App Version Management System - Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; padding: 30px; }
+  h1 { text-align: center; color: #58a6ff; margin-bottom: 8px; font-size: 24px; }
+  .subtitle { text-align: center; color: #8b949e; margin-bottom: 30px; font-size: 14px; }
+  svg { display: block; margin: 0 auto; }
+
+  .layer-bg { rx: 12; ry: 12; }
+  .layer-label { font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+
+  .box { rx: 8; ry: 8; stroke-width: 1.5; cursor: default; transition: filter 0.2s; }
+  .box:hover { filter: brightness(1.25) drop-shadow(0 0 6px rgba(88,166,255,0.4)); }
+
+  .box-title { font-size: 11px; font-weight: 700; }
+  .box-body  { font-size: 9.5px; fill: #8b949e; }
+  .box-type  { font-size: 9px; font-weight: 600; }
+
+  .arrow { stroke-width: 1.4; fill: none; marker-end: url(#arrowhead); }
+  .arrow-impl { stroke-dasharray: 6 3; }
+
+  .legend-box { rx: 4; ry: 4; stroke-width: 1.2; }
+  .legend-text { font-size: 10px; fill: #c9d1d9; }
+  .legend-line { stroke-width: 1.4; fill: none; }
+</style>
+</head>
+<body>
+<h1>App Version Management System</h1>
+<p class="subtitle">Class interaction diagram &mdash; hover over boxes for highlights</p>
+
+<svg viewBox="0 0 1100 780" width="1100" height="780" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#8b949e"/>
+  </marker>
+  <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#58a6ff"/>
+  </marker>
+</defs>
+
+<!-- ========== LAYER BACKGROUNDS ========== -->
+<!-- Entry Point -->
+<rect class="layer-bg" x="10" y="10" width="1080" height="68" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text class="layer-label" x="24" y="32" fill="#7ee787">ENTRY POINT</text>
+
+<!-- Service Layer -->
+<rect class="layer-bg" x="10" y="90" width="1080" height="185" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text class="layer-label" x="24" y="112" fill="#d2a8ff">SERVICE LAYER</text>
+
+<!-- Strategy Layer -->
+<rect class="layer-bg" x="10" y="287" width="1080" height="155" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text class="layer-label" x="24" y="309" fill="#ffa657">STRATEGY LAYER</text>
+
+<!-- Repository Layer -->
+<rect class="layer-bg" x="10" y="454" width="1080" height="155" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text class="layer-label" x="24" y="476" fill="#79c0ff">REPOSITORY LAYER</text>
+
+<!-- Model Layer -->
+<rect class="layer-bg" x="10" y="621" width="1080" height="148" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text class="layer-label" x="24" y="643" fill="#ff7b72">MODEL LAYER</text>
+
+<!-- ========== ENTRY POINT ========== -->
+<rect class="box" x="440" y="35" width="220" height="34" fill="#1f6feb" stroke="#58a6ff"/>
+<text class="box-title" x="550" y="49" text-anchor="middle" fill="#fff">Main</text>
+<text class="box-body" x="550" y="62" text-anchor="middle" fill="#c9d1d9">wires dependencies, runs demo</text>
+
+<!-- ========== SERVICE LAYER ========== -->
+<!-- AppService interface -->
+<rect class="box" x="80" y="125" width="260" height="138" fill="#1c1c3a" stroke="#d2a8ff"/>
+<text class="box-type" x="94" y="142" fill="#d2a8ff">&laquo;interface&raquo;</text>
+<text class="box-title" x="94" y="156" fill="#e2c0ff">AppService</text>
+<text class="box-body" x="94" y="172">+ uploadNewVersion(AppVersionDetails)</text>
+<text class="box-body" x="94" y="184">+ createUpdatePatch(fromVer, toVer): byte[]</text>
+<text class="box-body" x="94" y="196">+ releaseVersion(AppVersionDetails)</text>
+<text class="box-body" x="94" y="208">+ isAppVersionSupported(Device, AppVersionDetails)</text>
+<text class="box-body" x="94" y="220">+ checkForInstall(Device): boolean</text>
+<text class="box-body" x="94" y="232">+ checkForUpdates(Device): boolean</text>
+<text class="box-body" x="94" y="244">+ executeTask(Device, TaskType)</text>
+
+<!-- ConcreteAppService -->
+<rect class="box" x="400" y="125" width="290" height="138" fill="#21262d" stroke="#d2a8ff"/>
+<text class="box-title" x="414" y="142" fill="#e2c0ff">ConcreteAppService</text>
+<text class="box-body" x="414" y="158">- app: App</text>
+<text class="box-body" x="414" y="170">- appVersionDetailsRepository</text>
+<text class="box-body" x="414" y="182">- fileService: FileService</text>
+<text class="box-body" x="414" y="194">- rolloutStrategy: RolloutStrategy</text>
+<text class="box-body" x="414" y="212" fill="#7ee787">isHardwareAndOsSupported()</text>
+<text class="box-body" x="414" y="224" fill="#7ee787">doInstall() / doUpdate()</text>
+<text class="box-body" x="414" y="242" fill="#ffa657">synchronized uploadNewVersion</text>
+<text class="box-body" x="414" y="254" fill="#ffa657">volatile rolloutStrategy</text>
+
+<!-- FileService interface -->
+<rect class="box" x="750" y="125" width="230" height="100" fill="#1c1c3a" stroke="#d2a8ff"/>
+<text class="box-type" x="764" y="142" fill="#d2a8ff">&laquo;interface&raquo;</text>
+<text class="box-title" x="764" y="156" fill="#e2c0ff">FileService</text>
+<text class="box-body" x="764" y="172">+ installApp(deviceId, byte[])</text>
+<text class="box-body" x="764" y="184">+ updateApp(deviceId, byte[])</text>
+<text class="box-body" x="764" y="196">+ createDiffPack(byte[], byte[]): byte[]</text>
+<text class="box-body" x="764" y="208">+ uploadFile(byte[]): String</text>
+
+<!-- InMemoryFileService -->
+<rect class="box" x="780" y="235" width="190" height="40" fill="#21262d" stroke="#d2a8ff"/>
+<text class="box-title" x="875" y="252" text-anchor="middle" fill="#e2c0ff">InMemoryFileService</text>
+<text class="box-body" x="875" y="265" text-anchor="middle" fill="#ffa657">ConcurrentHashMap + AtomicLong</text>
+
+<!-- ========== STRATEGY LAYER ========== -->
+<!-- RolloutStrategy interface -->
+<rect class="box" x="80" y="310" width="260" height="55" fill="#1c2a1c" stroke="#ffa657"/>
+<text class="box-type" x="94" y="327" fill="#ffa657">&laquo;interface&raquo;</text>
+<text class="box-title" x="94" y="341" fill="#ffc078">RolloutStrategy</text>
+<text class="box-body" x="94" y="357">+ getEligibleDevices(): List&lt;Device&gt;</text>
+
+<!-- BetaRolloutStrategy -->
+<rect class="box" x="420" y="310" width="250" height="55" fill="#21262d" stroke="#ffa657"/>
+<text class="box-title" x="434" y="327" fill="#ffc078">BetaRolloutStrategy</text>
+<text class="box-body" x="434" y="343">- betaDeviceIds: Set&lt;String&gt; (unmodifiable)</text>
+<text class="box-body" x="434" y="355">filters: isBetaEnabled || in betaDeviceIds</text>
+
+<!-- PercentageRolloutStrategy -->
+<rect class="box" x="740" y="310" width="270" height="68" fill="#21262d" stroke="#ffa657"/>
+<text class="box-title" x="754" y="327" fill="#ffc078">PercentageRolloutStrategy</text>
+<text class="box-body" x="754" y="343">- percentage: int (0-100)</text>
+<text class="box-body" x="754" y="355">- eligibleDeviceIds: synchronized Set</text>
+<text class="box-body" x="754" y="367" fill="#ffa657">computeEligibleSet() once, then cached</text>
+
+<!-- isDeviceEligible on both -->
+<text class="box-body" x="94" y="370">+ isDeviceEligible(Device): boolean</text>
+
+<!-- ========== REPOSITORY LAYER ========== -->
+<!-- AppVersionDetailsRepository interface -->
+<rect class="box" x="80" y="480" width="260" height="68" fill="#0d2137" stroke="#79c0ff"/>
+<text class="box-type" x="94" y="497" fill="#79c0ff">&laquo;interface&raquo;</text>
+<text class="box-title" x="94" y="511" fill="#a5d6ff">AppVersionDetailsRepository</text>
+<text class="box-body" x="94" y="527">+ save() / getByVersion() / getLatestVersion()</text>
+<text class="box-body" x="94" y="539">+ exists(Version): boolean</text>
+
+<!-- LocalAppVersionDetailsRepository -->
+<rect class="box" x="80" y="558" width="260" height="42" fill="#21262d" stroke="#79c0ff"/>
+<text class="box-title" x="210" y="575" text-anchor="middle" fill="#a5d6ff">LocalAppVersionDetailsRepo</text>
+<text class="box-body" x="210" y="591" text-anchor="middle" fill="#ffa657">ConcurrentHashMap + volatile + lock</text>
+
+<!-- DeviceRepository interface -->
+<rect class="box" x="440" y="480" width="240" height="68" fill="#0d2137" stroke="#79c0ff"/>
+<text class="box-type" x="454" y="497" fill="#79c0ff">&laquo;interface&raquo;</text>
+<text class="box-title" x="454" y="511" fill="#a5d6ff">DeviceRepository</text>
+<text class="box-body" x="454" y="527">+ addDevice() / getById() / getAllDevices()</text>
+<text class="box-body" x="454" y="539">+ exists(String): boolean</text>
+
+<!-- LocalDeviceRepository -->
+<rect class="box" x="440" y="558" width="240" height="42" fill="#21262d" stroke="#79c0ff"/>
+<text class="box-title" x="560" y="575" text-anchor="middle" fill="#a5d6ff">LocalDeviceRepository</text>
+<text class="box-body" x="560" y="591" text-anchor="middle" fill="#ffa657">ConcurrentHashMap</text>
+
+<!-- ========== MODEL LAYER ========== -->
+<!-- App -->
+<rect class="box" x="30" y="650" width="120" height="42" fill="#2a1215" stroke="#ff7b72"/>
+<text class="box-title" x="90" y="667" text-anchor="middle" fill="#ffa198">App</text>
+<text class="box-body" x="90" y="683" text-anchor="middle">- name: String</text>
+
+<!-- Version -->
+<rect class="box" x="170" y="650" width="150" height="55" fill="#2a1215" stroke="#ff7b72"/>
+<text class="box-title" x="245" y="667" text-anchor="middle" fill="#ffa198">Version</text>
+<text class="box-body" x="245" y="683" text-anchor="middle">major.minor.patch</text>
+<text class="box-body" x="245" y="696" text-anchor="middle" fill="#7ee787">Comparable&lt;Version&gt;</text>
+
+<!-- Device -->
+<rect class="box" x="340" y="650" width="180" height="68" fill="#2a1215" stroke="#ff7b72"/>
+<text class="box-title" x="430" y="667" text-anchor="middle" fill="#ffa198">Device</text>
+<text class="box-body" x="354" y="683">id, betaEnabled, deviceType</text>
+<text class="box-body" x="354" y="696" fill="#ffa657">volatile appVersion</text>
+<text class="box-body" x="354" y="709" fill="#ffa657">synchronized setAppVersion()</text>
+
+<!-- HardwareSpec -->
+<rect class="box" x="540" y="650" width="155" height="55" fill="#2a1215" stroke="#ff7b72"/>
+<text class="box-title" x="617" y="667" text-anchor="middle" fill="#ffa198">HardwareSpec</text>
+<text class="box-body" x="554" y="683">ramInMB, storageInMB</text>
+<text class="box-body" x="554" y="696">deviceModel</text>
+
+<!-- AppMetaData -->
+<rect class="box" x="715" y="650" width="170" height="55" fill="#2a1215" stroke="#ff7b72"/>
+<text class="box-title" x="800" y="667" text-anchor="middle" fill="#ffa198">AppMetaData</text>
+<text class="box-body" x="729" y="683">minAndroid/iOS Version</text>
+<text class="box-body" x="729" y="696">minRamInMB, minStorageInMB</text>
+
+<!-- AppVersionDetails -->
+<rect class="box" x="905" y="650" width="170" height="68" fill="#2a1215" stroke="#ff7b72"/>
+<text class="box-title" x="990" y="667" text-anchor="middle" fill="#ffa198">AppVersionDetails</text>
+<text class="box-body" x="919" y="683">- version: Version</text>
+<text class="box-body" x="919" y="696">- file: byte[] (defensive copy)</text>
+<text class="box-body" x="919" y="709">- appMetaData</text>
+
+<!-- Enums -->
+<rect class="box" x="30" y="720" width="120" height="36" fill="#2a1a15" stroke="#ffa657"/>
+<text class="box-type" x="44" y="735" fill="#ffa657">&laquo;enum&raquo;</text>
+<text class="box-title" x="82" y="749" fill="#ffc078">DeviceType</text>
+
+<rect class="box" x="170" y="720" width="120" height="36" fill="#2a1a15" stroke="#ffa657"/>
+<text class="box-type" x="184" y="735" fill="#ffa657">&laquo;enum&raquo;</text>
+<text class="box-title" x="248" y="749" fill="#ffc078">TaskType</text>
+
+<!-- ========== ARROWS ========== -->
+<!-- Main -> ConcreteAppService (creates) -->
+<line class="arrow" x1="550" y1="69" x2="550" y2="123" stroke="#58a6ff"/>
+
+<!-- ConcreteAppService implements AppService -->
+<line class="arrow arrow-impl" x1="398" y1="194" x2="342" y2="194" stroke="#d2a8ff"/>
+
+<!-- ConcreteAppService -> FileService (uses) -->
+<line class="arrow" x1="692" y1="175" x2="748" y2="175" stroke="#8b949e"/>
+
+<!-- InMemoryFileService implements FileService -->
+<line class="arrow arrow-impl" x1="875" y1="233" x2="875" y2="227" stroke="#d2a8ff"/>
+
+<!-- ConcreteAppService -> RolloutStrategy (uses) -->
+<line class="arrow" x1="500" y1="265" x2="300" y2="310" stroke="#8b949e"/>
+
+<!-- BetaRolloutStrategy implements RolloutStrategy -->
+<line class="arrow arrow-impl" x1="418" y1="337" x2="342" y2="337" stroke="#ffa657"/>
+
+<!-- PercentageRolloutStrategy implements RolloutStrategy -->
+<path class="arrow arrow-impl" d="M738,337 L680,337 L400,337 L342,337" stroke="#ffa657"/>
+
+<!-- BetaRolloutStrategy -> DeviceRepository -->
+<line class="arrow" x1="545" y1="367" x2="545" y2="478" stroke="#8b949e"/>
+
+<!-- PercentageRolloutStrategy -> DeviceRepository -->
+<line class="arrow" x1="740" y1="380" x2="620" y2="478" stroke="#8b949e"/>
+
+<!-- ConcreteAppService -> AppVersionDetailsRepository -->
+<line class="arrow" x1="450" y1="265" x2="210" y2="478" stroke="#8b949e"/>
+
+<!-- LocalAppVersionDetailsRepo implements interface -->
+<line class="arrow arrow-impl" x1="210" y1="556" x2="210" y2="550" stroke="#79c0ff"/>
+
+<!-- LocalDeviceRepo implements interface -->
+<line class="arrow arrow-impl" x1="560" y1="556" x2="560" y2="550" stroke="#79c0ff"/>
+
+<!-- Device -> HardwareSpec (has) -->
+<line class="arrow" x1="522" y1="680" x2="538" y2="680" stroke="#ff7b72"/>
+
+<!-- Device -> Version (has osVersion, appVersion) -->
+<line class="arrow" x1="338" y1="680" x2="322" y2="680" stroke="#ff7b72"/>
+
+<!-- AppVersionDetails -> AppMetaData (has) -->
+<line class="arrow" x1="903" y1="690" x2="887" y2="690" stroke="#ff7b72"/>
+
+<!-- AppVersionDetails -> Version (has) -->
+<path class="arrow" d="M903,710 L900,730 L320,730 L318,698" stroke="#ff7b72"/>
+
+<!-- ========== LEGEND ========== -->
+<rect x="760" y="470" width="310" height="130" rx="8" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+<text class="box-title" x="774" y="490" fill="#c9d1d9">Legend</text>
+
+<line class="legend-line" x1="774" y1="508" x2="814" y2="508" stroke="#8b949e" marker-end="url(#arrowhead)"/>
+<text class="legend-text" x="824" y="512">depends on / uses</text>
+
+<line class="legend-line arrow-impl" x1="774" y1="528" x2="814" y2="528" stroke="#d2a8ff" stroke-dasharray="6 3" marker-end="url(#arrowhead)"/>
+<text class="legend-text" x="824" y="532">implements</text>
+
+<line class="legend-line" x1="774" y1="548" x2="814" y2="548" stroke="#ff7b72" marker-end="url(#arrowhead)"/>
+<text class="legend-text" x="824" y="552">has-a / composition</text>
+
+<rect class="legend-box" x="774" y="561" width="16" height="12" fill="#1c1c3a" stroke="#d2a8ff"/>
+<text class="legend-text" x="800" y="572">interface</text>
+
+<rect class="legend-box" x="860" y="561" width="16" height="12" fill="#21262d" stroke="#d2a8ff"/>
+<text class="legend-text" x="886" y="572">implementation</text>
+
+<rect class="legend-box" x="774" y="581" width="16" height="12" fill="#2a1215" stroke="#ff7b72"/>
+<text class="legend-text" x="800" y="592">model / value object</text>
+
+</svg>
+</body>
+</html>
