@@ -1,7 +1,6 @@
 package com.SnakeAndLadder;
 
 import com.SnakeAndLadder.enums.ElementType;
-import com.SnakeAndLadder.enums.PlayerStatus;
 import com.SnakeAndLadder.model.*;
 import com.SnakeAndLadder.service.impl.GameServiceImpl;
 import com.SnakeAndLadder.service.interfaces.GameService;
