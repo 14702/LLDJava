@@ -30,7 +30,9 @@
       "Bash(java -cp out com.AppVersionManagementSystem.test.TestRunner)",
       "Bash(javac -d out src/com/AppVersionManagementSystem/enums/*.java src/com/AppVersionManagementSystem/model/*.java src/com/AppVersionManagementSystem/repository/interfaces/*.java src/com/AppVersionManagementSystem/repository/impl/*.java src/com/AppVersionManagementSystem/service/interfaces/*.java src/com/AppVersionManagementSystem/service/impl/*.java src/com/AppVersionManagementSystem/strategy/interfaces/*.java src/com/AppVersionManagementSystem/strategy/Impl/*.java src/com/AppVersionManagementSystem/test/*.java src/com/AppVersionManagementSystem/Main.java)",
       "Bash(time java *)",
-      "Bash(javac -d out 'src/com/AppVersionManagementSystem/enums/*.java' 'src/com/AppVersionManagementSystem/model/*.java' 'src/com/AppVersionManagementSystem/repository/interfaces/*.java' 'src/com/AppVersionManagementSystem/repository/impl/*.java' 'src/com/AppVersionManagementSystem/service/interfaces/*.java' 'src/com/AppVersionManagementSystem/service/impl/*.java' 'src/com/AppVersionManagementSystem/strategy/interfaces/*.java' 'src/com/AppVersionManagementSystem/strategy/impl/*.java' 'src/com/AppVersionManagementSystem/test/*.java' src/com/AppVersionManagementSystem/Main.java)"
+      "Bash(javac -d out 'src/com/AppVersionManagementSystem/enums/*.java' 'src/com/AppVersionManagementSystem/model/*.java' 'src/com/AppVersionManagementSystem/repository/interfaces/*.java' 'src/com/AppVersionManagementSystem/repository/impl/*.java' 'src/com/AppVersionManagementSystem/service/interfaces/*.java' 'src/com/AppVersionManagementSystem/service/impl/*.java' 'src/com/AppVersionManagementSystem/strategy/interfaces/*.java' 'src/com/AppVersionManagementSystem/strategy/impl/*.java' 'src/com/AppVersionManagementSystem/test/*.java' src/com/AppVersionManagementSystem/Main.java)",
+      "Bash(javac -d out src/com/PaymentGateway/enums/*.java src/com/PaymentGateway/model/*.java src/com/PaymentGateway/router/*.java src/com/PaymentGateway/*.java)",
+      "Bash(java -cp out com.PaymentGateway.Main)"
     ]
   }
 }

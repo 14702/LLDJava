@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Gateway - Interactive Architecture</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+
+/* ---- NAV TABS ---- */
+.tabs{display:flex;justify-content:center;gap:4px;padding:16px 16px 0;background:#1e293b;position:sticky;top:0;z-index:100}
+.tab{padding:10px 24px;border-radius:8px 8px 0 0;cursor:pointer;font-size:13px;font-weight:600;
+  background:#334155;color:#94a3b8;transition:.2s;border:none}
+.tab:hover{background:#475569;color:#e2e8f0}
+.tab.active{background:#0f172a;color:#38bdf8}
+.panel{display:none;padding:32px;max-width:1200px;margin:0 auto}
+.panel.active{display:block}
+
+/* ---- SVG DIAGRAM ---- */
+#diagramSvg{width:100%;height:520px;display:block;margin:0 auto}
+.node{cursor:pointer;transition:filter .2s}
+.node:hover{filter:brightness(1.2) drop-shadow(0 0 8px rgba(56,189,248,.5))}
+.node.highlight rect,.node.highlight ellipse{stroke:#38bdf8;stroke-width:3;filter:drop-shadow(0 0 12px rgba(56,189,248,.6))}
+.node text{pointer-events:none}
+.edge{stroke:#475569;stroke-width:1.5;fill:none;marker-end:url(#arrowhead)}
+.edge.active{stroke:#38bdf8;stroke-width:2.5;transition:stroke .3s}
+.pulse{fill:#38bdf8;opacity:0}
+
+/* ---- DETAIL PANEL (right side on diagram) ---- */
+#detailPanel{position:fixed;right:-420px;top:60px;width:400px;max-height:calc(100vh - 80px);
+  background:#1e293b;border-left:3px solid #38bdf8;border-radius:12px 0 0 12px;padding:24px;
+  overflow-y:auto;transition:right .35s ease;z-index:200;box-shadow:-4px 0 20px rgba(0,0,0,.4)}
+#detailPanel.open{right:0}
+#detailPanel h3{color:#38bdf8;font-size:18px;margin-bottom:4px}
+#detailPanel .pkg{color:#64748b;font-size:11px;margin-bottom:12px}
+#detailPanel p{font-size:13px;line-height:1.7;color:#cbd5e1;margin-bottom:8px}
+#detailPanel ul{font-size:13px;line-height:1.8;color:#cbd5e1;padding-left:18px;margin-bottom:8px}
+#detailPanel code{background:#334155;padding:1px 6px;border-radius:4px;font-size:12px;color:#7dd3fc}
+#detailPanel .close-btn{position:absolute;top:12px;right:16px;background:none;border:none;
+  color:#64748b;font-size:20px;cursor:pointer}
+#detailPanel .close-btn:hover{color:#f43f5e}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;color:#fff;font-weight:700;margin-right:4px}
+.badge-dp{background:#6366f1}
+.badge-ts{background:#0891b2}
+
+/* ---- FLOW SIMULATOR ---- */
+.sim-controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+.sim-btn{padding:10px 20px;border-radius:8px;border:2px solid #334155;background:#1e293b;
+  color:#e2e8f0;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.sim-btn:hover{border-color:#38bdf8;background:#334155}
+.sim-btn.active-sim{border-color:#38bdf8;background:#0c4a6e;color:#38bdf8}
+.sim-btn:disabled{opacity:.4;cursor:not-allowed}
+
+#flowSvg{width:100%;height:460px;display:block;margin:0 auto 20px}
+.flow-node rect{rx:10;ry:10}
+.flow-node text{fill:#e2e8f0;font-size:12px;font-weight:600;text-anchor:middle;pointer-events:none}
+.flow-edge{stroke:#334155;stroke-width:2;fill:none;marker-end:url(#flowArrow)}
+.flow-edge.lit{stroke:#22c55e;stroke-width:2.5;transition:stroke .4s}
+.flow-node.lit rect{stroke:#22c55e;stroke-width:3;filter:drop-shadow(0 0 10px rgba(34,197,94,.5))}
+.flow-dot{fill:#22c55e;r:5}
+
+#flowLog{max-width:800px;margin:0 auto;background:#1e293b;border-radius:10px;padding:16px 20px;
+  font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;line-height:1.8;
+  max-height:260px;overflow-y:auto;color:#94a3b8}
+#flowLog .log-line{opacity:0;animation:fadeIn .4s forwards}
+#flowLog .log-success{color:#22c55e}
+#flowLog .log-fail{color:#f43f5e}
+#flowLog .log-info{color:#38bdf8}
+#flowLog .log-warn{color:#eab308}
+@keyframes fadeIn{to{opacity:1}}
+
+/* ---- STEP-THROUGH ---- */
+.step-bar{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:24px}
+.step-dot{width:32px;height:32px;border-radius:50%;border:2px solid #334155;display:flex;
+  align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#64748b;
+  transition:.3s;cursor:pointer}
+.step-dot.done{background:#22c55e;border-color:#22c55e;color:#fff}
+.step-dot.current{background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;transform:scale(1.15)}
+.step-connector{width:24px;height:2px;background:#334155}
+.step-connector.done{background:#22c55e}
+#stepContent{max-width:800px;margin:0 auto;background:#1e293b;border-radius:12px;padding:24px 28px;
+  min-height:120px}
+#stepContent h3{color:#38bdf8;font-size:16px;margin-bottom:8px}
+#stepContent p{font-size:14px;line-height:1.7;color:#cbd5e1}
+#stepContent code{background:#334155;padding:1px 6px;border-radius:4px;font-size:12px;color:#7dd3fc}
+#stepContent .highlight-classes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#stepContent .hc{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
+.step-nav{display:flex;gap:12px;justify-content:center;margin-top:20px}
+.step-nav button{padding:8px 24px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer}
+.step-nav .prev{background:#334155;color:#e2e8f0}
+.step-nav .next{background:#2563eb;color:#fff}
+.step-nav button:disabled{opacity:.3;cursor:not-allowed}
+
+/* ---- PATTERNS TABLE ---- */
+.patterns{max-width:900px;margin:0 auto}
+.patterns table{width:100%;border-collapse:collapse;font-size:13px}
+.patterns th{text-align:left;padding:10px;border-bottom:2px solid #334155;color:#64748b}
+.patterns td{padding:10px;border-bottom:1px solid #1e293b;color:#cbd5e1}
+.patterns tr:hover{background:#1e293b}
+
+/* ---- API PLAYGROUND ---- */
+.playground{max-width:900px;margin:0 auto}
+.pg-row{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.pg-label{font-size:13px;font-weight:600;color:#94a3b8;min-width:100px}
+.pg-select,.pg-input{padding:8px 12px;border-radius:6px;border:1px solid #334155;
+  background:#1e293b;color:#e2e8f0;font-size:13px}
+.pg-select{min-width:160px}
+.pg-run{padding:8px 24px;border-radius:8px;border:none;background:#2563eb;color:#fff;
+  font-weight:600;cursor:pointer;font-size:13px}
+.pg-run:hover{background:#3b82f6}
+#pgOutput{margin-top:16px;background:#1e293b;border-radius:10px;padding:16px 20px;
+  font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;line-height:1.8;
+  min-height:80px;color:#94a3b8}
+</style>
+</head>
+<body>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('diagram')">Class Diagram</button>
+  <button class="tab" onclick="switchTab('flow')">Payment Flow Simulator</button>
+  <button class="tab" onclick="switchTab('walkthrough')">Step-by-Step Walkthrough</button>
+  <button class="tab" onclick="switchTab('playground')">API Playground</button>
+  <button class="tab" onclick="switchTab('patterns')">Patterns & Concurrency</button>
+</div>
+
+<!-- ==================== TAB 1: INTERACTIVE DIAGRAM ==================== -->
+<div id="diagram" class="panel active">
+<svg id="diagramSvg" viewBox="0 0 900 520">
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <!-- Edges (drawn first, behind nodes) -->
+  <path class="edge" d="M450,62 L450,90" data-from="Main" data-to="PaymentGateway"/>
+  <path class="edge" d="M350,152 L210,180" data-from="PaymentGateway" data-to="Client"/>
+  <path class="edge" d="M450,152 L450,180" data-from="PaymentGateway" data-to="PaymentRouter"/>
+  <path class="edge" d="M550,152 L680,180" data-from="PaymentGateway" data-to="PaymentDetails"/>
+  <path class="edge" d="M450,240 L310,270" data-from="PaymentRouter" data-to="Bank"/>
+  <path class="edge" d="M370,152 L310,300" data-from="PaymentGateway" data-to="Bank"/>
+  <path class="edge" d="M530,152 L590,270" data-from="PaymentGateway" data-to="Transaction"/>
+  <path class="edge" d="M310,330 L310,370" data-from="Bank" data-to="TransactionStatus"/>
+  <path class="edge" d="M590,330 L590,370" data-from="Transaction" data-to="TransactionStatus"/>
+  <path class="edge" d="M210,240 L210,370" data-from="Client" data-to="PaymentMethod"/>
+  <path class="edge" d="M450,240 L210,370" data-from="PaymentRouter" data-to="PaymentMethod"/>
+  <path class="edge" d="M680,240 L210,390" data-from="PaymentDetails" data-to="PaymentMethod"/>
+  <path class="edge" d="M450,240 L450,440" data-from="PaymentRouter" data-to="RoutingStrategy" style="stroke-dasharray:5,5"/>
+
+  <!-- NODES -->
+  <g class="node" data-id="Main" onclick="showDetail('Main')">
+    <rect x="370" y="20" width="160" height="42" rx="8" fill="#ffe4e6" stroke="#f43f5e" stroke-width="2"/>
+    <text x="450" y="46" text-anchor="middle" fill="#1a1a2e" font-size="13" font-weight="700">Main</text>
+  </g>
+
+  <g class="node" data-id="PaymentGateway" onclick="showDetail('PaymentGateway')">
+    <rect x="320" y="90" width="260" height="62" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="450" y="116" text-anchor="middle" fill="#1e3a5f" font-size="14" font-weight="700">PaymentGateway</text>
+    <text x="450" y="134" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">FACADE  |  THREAD-SAFE</text>
+  </g>
+
+  <g class="node" data-id="Client" onclick="showDetail('Client')">
+    <rect x="130" y="190" width="160" height="50" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+    <text x="210" y="213" text-anchor="middle" fill="#14532d" font-size="13" font-weight="700">Client</text>
+    <text x="210" y="228" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="600">THREAD-SAFE</text>
+  </g>
+
+  <g class="node" data-id="PaymentRouter" onclick="showDetail('PaymentRouter')">
+    <rect x="340" y="190" width="220" height="50" rx="8" fill="#fef9c3" stroke="#eab308" stroke-width="2"/>
+    <text x="450" y="213" text-anchor="middle" fill="#713f12" font-size="13" font-weight="700">PaymentRouter</text>
+    <text x="450" y="228" text-anchor="middle" fill="#ca8a04" font-size="9" font-weight="600">STRATEGY  |  THREAD-SAFE</text>
+  </g>
+
+  <g class="node" data-id="PaymentDetails" onclick="showDetail('PaymentDetails')">
+    <rect x="600" y="190" width="170" height="50" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+    <text x="685" y="213" text-anchor="middle" fill="#14532d" font-size="13" font-weight="700">PaymentDetails</text>
+    <text x="685" y="228" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="600">BUILDER PATTERN</text>
+  </g>
+
+  <g class="node" data-id="Bank" onclick="showDetail('Bank')">
+    <rect x="230" y="280" width="160" height="50" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+    <text x="310" y="303" text-anchor="middle" fill="#14532d" font-size="13" font-weight="700">Bank</text>
+    <text x="310" y="318" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="600">THREAD-SAFE</text>
+  </g>
+
+  <g class="node" data-id="Transaction" onclick="showDetail('Transaction')">
+    <rect x="510" y="280" width="160" height="50" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+    <text x="590" y="303" text-anchor="middle" fill="#14532d" font-size="13" font-weight="700">Transaction</text>
+    <text x="590" y="318" text-anchor="middle" fill="#14532d" font-size="9">immutable</text>
+  </g>
+
+  <g class="node" data-id="PaymentMethod" onclick="showDetail('PaymentMethod')">
+    <rect x="120" y="370" width="180" height="42" rx="8" fill="#f3e8ff" stroke="#a855f7" stroke-width="2"/>
+    <text x="210" y="396" text-anchor="middle" fill="#581c87" font-size="13" font-weight="700">PaymentMethod</text>
+  </g>
+
+  <g class="node" data-id="TransactionStatus" onclick="showDetail('TransactionStatus')">
+    <rect x="500" y="370" width="180" height="42" rx="8" fill="#f3e8ff" stroke="#a855f7" stroke-width="2"/>
+    <text x="590" y="396" text-anchor="middle" fill="#581c87" font-size="13" font-weight="700">TransactionStatus</text>
+  </g>
+
+  <g class="node" data-id="RoutingStrategy" onclick="showDetail('RoutingStrategy')">
+    <rect x="340" y="440" width="220" height="42" rx="8" fill="none" stroke="#eab308" stroke-width="2" stroke-dasharray="6,3"/>
+    <text x="450" y="465" text-anchor="middle" fill="#eab308" font-size="12" font-weight="600">&laquo;interface&raquo; RoutingStrategy</text>
+  </g>
+</svg>
+<p style="text-align:center;color:#64748b;font-size:12px;margin-top:-12px">Click any class to see details. Edges show dependencies.</p>
+</div>
+
+<!-- DETAIL SLIDE-IN -->
+<div id="detailPanel">
+  <button class="close-btn" onclick="closeDetail()">&times;</button>
+  <div id="detailContent"></div>
+</div>
+
+<!-- ==================== TAB 2: FLOW SIMULATOR ==================== -->
+<div id="flow" class="panel">
+<h2 style="text-align:center;margin-bottom:20px;color:#38bdf8">Payment Flow Simulator</h2>
+<div class="sim-controls">
+  <button class="sim-btn active-sim" onclick="runSim('cc')" id="simCC">Credit Card &rarr; HDFC</button>
+  <button class="sim-btn" onclick="runSim('nb')" id="simNB">NetBanking &rarr; ICICI</button>
+  <button class="sim-btn" onclick="runSim('upi')" id="simUPI">UPI &rarr; Weighted 70/30</button>
+  <button class="sim-btn" onclick="runSim('fail')" id="simFail">Invalid (no card details)</button>
+</div>
+
+<svg id="flowSvg" viewBox="0 0 860 460">
+  <defs>
+    <marker id="flowArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#334155"/>
+    </marker>
+  </defs>
+
+  <!-- Flow nodes -->
+  <g class="flow-node" id="fn-client"><rect x="30" y="30" width="140" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+    <text x="100" y="56">Caller / Main</text></g>
+
+  <g class="flow-node" id="fn-build"><rect x="220" y="30" width="180" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+    <text x="310" y="56">PaymentDetails.Builder</text></g>
+
+  <g class="flow-node" id="fn-pg"><rect x="450" y="30" width="180" height="44" fill="#334155" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="540" y="56">PaymentGateway</text></g>
+
+  <g class="flow-node" id="fn-validate-client"><rect x="80" y="140" width="200" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+    <text x="180" y="166">Validate Client Method</text></g>
+
+  <g class="flow-node" id="fn-validate-instrument"><rect x="340" y="140" width="220" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+    <text x="450" y="166">Validate Instrument Details</text></g>
+
+  <g class="flow-node" id="fn-router"><rect x="620" y="140" width="200" height="44" fill="#334155" stroke="#eab308" stroke-width="1.5"/>
+    <text x="720" y="166">PaymentRouter</text></g>
+
+  <g class="flow-node" id="fn-method-route"><rect x="60" y="260" width="180" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+    <text x="150" y="286">Method Route?</text></g>
+
+  <g class="flow-node" id="fn-weighted"><rect x="300" y="260" width="180" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+    <text x="390" y="286">Weighted Dist?</text></g>
+
+  <g class="flow-node" id="fn-random"><rect x="540" y="260" width="180" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+    <text x="630" y="286">Random Fallback</text></g>
+
+  <g class="flow-node" id="fn-bank"><rect x="250" y="360" width="180" height="44" fill="#334155" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="340" y="386">Bank.processPayment</text></g>
+
+  <g class="flow-node" id="fn-txn"><rect x="500" y="360" width="180" height="44" fill="#334155" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="590" y="386">Transaction Created</text></g>
+
+  <!-- Flow edges -->
+  <path class="flow-edge" id="fe-1" d="M170,52 L220,52"/>
+  <path class="flow-edge" id="fe-2" d="M400,52 L450,52"/>
+  <path class="flow-edge" id="fe-3" d="M490,74 L180,140"/>
+  <path class="flow-edge" id="fe-4" d="M540,74 L450,140"/>
+  <path class="flow-edge" id="fe-5" d="M590,74 L720,140"/>
+  <path class="flow-edge" id="fe-6" d="M720,184 L150,260"/>
+  <path class="flow-edge" id="fe-7" d="M240,282 L300,282"/>
+  <path class="flow-edge" id="fe-8" d="M480,282 L540,282"/>
+  <path class="flow-edge" id="fe-9a" d="M150,304 L340,360"/>
+  <path class="flow-edge" id="fe-9b" d="M390,304 L340,360"/>
+  <path class="flow-edge" id="fe-9c" d="M630,304 L340,360"/>
+  <path class="flow-edge" id="fe-10" d="M430,382 L500,382"/>
+</svg>
+
+<div id="flowLog"></div>
+</div>
+
+<!-- ==================== TAB 3: STEP-BY-STEP WALKTHROUGH ==================== -->
+<div id="walkthrough" class="panel">
+<h2 style="text-align:center;margin-bottom:24px;color:#38bdf8">How a Payment is Processed</h2>
+<div class="step-bar" id="stepBar"></div>
+<div id="stepContent"></div>
+<div class="step-nav">
+  <button class="prev" id="prevBtn" onclick="stepPrev()">Previous</button>
+  <button class="next" id="nextBtn" onclick="stepNext()">Next</button>
+</div>
+</div>
+
+<!-- ==================== TAB 4: API PLAYGROUND ==================== -->
+<div id="playground" class="panel">
+<h2 style="text-align:center;margin-bottom:24px;color:#38bdf8">API Playground</h2>
+<p style="text-align:center;color:#64748b;font-size:13px;margin-bottom:24px">Simulate PG API calls in the browser. State persists within this session.</p>
+<div class="playground">
+  <div class="pg-row">
+    <span class="pg-label">API Call</span>
+    <select class="pg-select" id="apiSelect" onchange="onApiChange()">
+      <option value="addClient">addClient(clientId)</option>
+      <option value="removeClient">removeClient(clientId)</option>
+      <option value="hasClient">hasClient(clientId)</option>
+      <option value="addPaymode">addSupportForPaymode(method)</option>
+      <option value="addClientPaymode">addSupportForPaymode(clientId, method)</option>
+      <option value="removePaymode">removePaymode(method)</option>
+      <option value="listPaymodes">listSupportedPaymodes()</option>
+      <option value="listClientPaymodes">listSupportedPaymodes(clientId)</option>
+      <option value="makePayment">makePayment(...)</option>
+      <option value="showDistribution">showDistribution()</option>
+    </select>
+  </div>
+  <div class="pg-row" id="pgParams"></div>
+  <div class="pg-row">
+    <button class="pg-run" onclick="runApi()">Execute</button>
+  </div>
+  <div id="pgOutput"></div>
+</div>
+</div>
+
+<!-- ==================== TAB 5: PATTERNS TABLE ==================== -->
+<div id="patterns" class="panel">
+<h2 style="text-align:center;margin-bottom:24px;color:#38bdf8">Design Patterns & Concurrency</h2>
+<div class="patterns">
+<table>
+  <tr><th>Pattern</th><th>Where</th><th>Why</th></tr>
+  <tr><td><strong style="color:#a78bfa">Facade</strong></td><td>PaymentGateway</td><td>Single API surface hiding client, router, and bank complexity</td></tr>
+  <tr><td><strong style="color:#a78bfa">Strategy</strong></td><td>RoutingStrategy / PaymentRouter</td><td>Routing logic is swappable without changing the gateway</td></tr>
+  <tr><td><strong style="color:#a78bfa">Builder</strong></td><td>PaymentDetails.Builder</td><td>Clean construction of payment requests with method-specific optional fields</td></tr>
+  <tr><th colspan="3" style="padding-top:16px;color:#64748b">Concurrency Mechanisms</th></tr>
+  <tr><td><strong style="color:#22d3ee">ConcurrentHashMap</strong></td><td>PaymentGateway (clients), PaymentRouter (routes, distribution)</td><td>Thread-safe map without full locking</td></tr>
+  <tr><td><strong style="color:#22d3ee">ConcurrentHashMap.newKeySet()</strong></td><td>Client, PaymentGateway (supportedMethods)</td><td>Thread-safe Set</td></tr>
+  <tr><td><strong style="color:#22d3ee">CopyOnWriteArrayList</strong></td><td>PaymentRouter (banks list)</td><td>Safe iteration during concurrent reads</td></tr>
+  <tr><td><strong style="color:#22d3ee">synchronizedList</strong></td><td>PaymentGateway (transactions)</td><td>Thread-safe append for transaction log</td></tr>
+  <tr><td><strong style="color:#22d3ee">synchronized methods</strong></td><td>Bank (processPayment, getSuccessRate)</td><td>Atomic stat counter updates</td></tr>
+</table>
+</div>
+</div>
+
+<script>
+// ==================== TAB SWITCHING ====================
+function switchTab(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  closeDetail();
+}
+
+// ==================== CLASS DETAIL DATA ====================
+const details = {
+  Main: {
+    title:'Main', pkg:'com.PaymentGateway', badges:[],
+    desc:'Entry point of the application. Sets up banks, configures the router, creates the PaymentGateway facade, onboards clients, and processes demo payments.',
+    methods:['Creates Bank, PaymentRouter, PaymentGateway instances','Configures method routes (CC->HDFC, NB->ICICI)','Sets weighted distribution (HDFC 70%, SBI 30%)','Onboards clients: flipkart, amazon','Processes sample payments for each method'],
+    connects:['PaymentGateway','Bank','PaymentRouter','PaymentDetails']
+  },
+  PaymentGateway: {
+    title:'PaymentGateway', pkg:'com.PaymentGateway', badges:['dp:Facade','ts:Thread-Safe'],
+    desc:'The Facade. Single entry point for all PG operations. Internally delegates to Client, PaymentRouter, and Bank. All collections are concurrent.',
+    methods:['addClient(clientId) / removeClient(clientId) / hasClient(clientId)',
+      'addSupportForPaymode(method) — PG-level',
+      'addSupportForPaymode(clientId, method) — client-level',
+      'removePaymode(method) / removePaymode(clientId, method)',
+      'listSupportedPaymodes() / listSupportedPaymodes(clientId)',
+      'makePayment(PaymentDetails) — validate, route, process, record',
+      'showDistribution() / showMethodRoutes()',
+      'getTransactions() / getTransactions(clientId)'],
+    connects:['Client','PaymentRouter','Bank','Transaction','PaymentDetails']
+  },
+  Client: {
+    title:'Client', pkg:'com.PaymentGateway.model', badges:['ts:Thread-Safe'],
+    desc:'Represents a PG client (e.g. Flipkart, Amazon). Each client maintains its own set of allowed payment methods using a thread-safe ConcurrentHashMap-backed Set.',
+    methods:['addPaymentMethod(method)','removePaymentMethod(method)','supportsMethod(method) — checked before processing','getSupportedMethods() — returns unmodifiable view'],
+    connects:['PaymentMethod']
+  },
+  PaymentRouter: {
+    title:'PaymentRouter', pkg:'com.PaymentGateway.router', badges:['dp:Strategy','ts:Thread-Safe'],
+    desc:'Implements RoutingStrategy interface. Three-tier routing: (1) method-specific route, (2) weighted distribution, (3) random fallback. Extension method selectBankDynamic() routes by bank success rate.',
+    methods:['addBank(bank)','setMethodRoute(method, bank) — e.g. CC -> HDFC','setDistribution(Map<Bank,Integer>) — must sum to 100','selectBank(method) — 3-tier routing','selectBankDynamic(method) — picks highest success rate bank','getDistribution() / getMethodRoutes()'],
+    connects:['Bank','RoutingStrategy','PaymentMethod']
+  },
+  PaymentDetails: {
+    title:'PaymentDetails', pkg:'com.PaymentGateway.model', badges:['dp:Builder'],
+    desc:'Immutable payment request built via the Builder pattern. Each payment method requires specific instrument fields — the builder ensures only relevant fields are set.',
+    methods:['Builder(clientId, method, amount) — required fields','cardDetails(number, expiry, cvv) — for CC/DC','upiVpa(vpa) — for UPI','netBankingCredentials(user, pass) — for NB','hasValidInstrumentDetails() — validates per method','build() — returns immutable PaymentDetails'],
+    connects:['PaymentMethod']
+  },
+  Bank: {
+    title:'Bank', pkg:'com.PaymentGateway.model', badges:['ts:Thread-Safe'],
+    desc:'Mock bank that processes payments with ~80% random success rate. Tracks total requests and success count for dynamic routing. All stat methods are synchronized.',
+    methods:['processPayment(details) — synchronized, returns SUCCESS/FAILURE','getSuccessRate() — synchronized, used by dynamic router','getTotalRequests()'],
+    connects:['TransactionStatus','PaymentDetails']
+  },
+  Transaction: {
+    title:'Transaction', pkg:'com.PaymentGateway.model', badges:[],
+    desc:'Immutable record of a processed payment. Auto-generates a short UUID-based transaction ID. Stored in PaymentGateway\'s synchronized transaction list.',
+    methods:['Fields: transactionId, clientId, bankName, method, amount, status','All fields are final (immutable)','toString() — human-readable format'],
+    connects:['PaymentMethod','TransactionStatus']
+  },
+  PaymentMethod: {
+    title:'PaymentMethod', pkg:'com.PaymentGateway.enums', badges:[],
+    desc:'Enum defining the four supported payment instruments.',
+    methods:['CREDIT_CARD','DEBIT_CARD','UPI','NET_BANKING'],
+    connects:[]
+  },
+  TransactionStatus: {
+    title:'TransactionStatus', pkg:'com.PaymentGateway.enums', badges:[],
+    desc:'Enum for payment outcomes.',
+    methods:['SUCCESS','FAILURE'],
+    connects:[]
+  },
+  RoutingStrategy: {
+    title:'RoutingStrategy', pkg:'com.PaymentGateway.router', badges:['dp:Strategy Interface'],
+    desc:'Strategy pattern interface. Defines selectBank(PaymentMethod). Allows swapping routing logic without modifying PaymentGateway. PaymentRouter is the concrete implementation.',
+    methods:['selectBank(PaymentMethod) — returns a Bank'],
+    connects:['PaymentRouter']
+  }
+};
+
+function showDetail(id){
+  const d = details[id];
+  if(!d) return;
+  // highlight node
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('highlight'));
+  const node = document.querySelector(`.node[data-id="${id}"]`);
+  if(node) node.classList.add('highlight');
+
+  // highlight connected edges
+  document.querySelectorAll('.edge').forEach(e=>{
+    e.classList.remove('active');
+    if(e.dataset.from===id||e.dataset.to===id) e.classList.add('active');
+  });
+
+  let html = `<h3>${d.title}</h3><div class="pkg">${d.pkg}</div>`;
+  html += d.badges.map(b=>{
+    const [type,label]=b.split(':');
+    return `<span class="badge badge-${type}">${label}</span>`;
+  }).join('')+'<br><br>';
+  html += `<p>${d.desc}</p><ul>` + d.methods.map(m=>`<li><code>${m}</code></li>`).join('') + '</ul>';
+  if(d.connects.length){
+    html += '<p style="margin-top:12px;color:#64748b;font-size:12px"><strong>Connects to:</strong> '+d.connects.map(c=>`<span style="color:#38bdf8;cursor:pointer" onclick="showDetail('${c}')">${c}</span>`).join(', ')+'</p>';
+  }
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('open');
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('highlight'));
+  document.querySelectorAll('.edge').forEach(e=>e.classList.remove('active'));
+}
+
+// ==================== FLOW SIMULATOR ====================
+const scenarios = {
+  cc: {
+    path:['fn-client','fn-build','fn-pg','fn-validate-client','fn-validate-instrument','fn-router','fn-method-route','fn-bank','fn-txn'],
+    edges:['fe-1','fe-2','fe-3','fe-4','fe-5','fe-6','fe-9a','fe-10'],
+    logs:[
+      {cls:'log-info',msg:'> PaymentDetails.Builder("flipkart", CREDIT_CARD, 1500.0).cardDetails("4111...","12/26","789").build()'},
+      {cls:'log-info',msg:'> PaymentGateway.makePayment(details)'},
+      {cls:'',msg:'  Validating client "flipkart" exists... OK'},
+      {cls:'',msg:'  Validating flipkart supports CREDIT_CARD... OK'},
+      {cls:'',msg:'  Validating instrument: cardNumber, expiry, cvv present... OK'},
+      {cls:'log-warn',msg:'  PaymentRouter.selectBank(CREDIT_CARD)'},
+      {cls:'log-warn',msg:'  Priority 1: Method route found -> CREDIT_CARD => HDFC'},
+      {cls:'',msg:'  Bank HDFC.processPayment() -> random result...'},
+      {cls:'log-success',msg:'  Result: SUCCESS'},
+      {cls:'log-success',msg:'  Transaction created: Txn[abc12345] client=flipkart bank=HDFC method=CREDIT_CARD amount=1500.0 status=SUCCESS'}
+    ]
+  },
+  nb: {
+    path:['fn-client','fn-build','fn-pg','fn-validate-client','fn-validate-instrument','fn-router','fn-method-route','fn-bank','fn-txn'],
+    edges:['fe-1','fe-2','fe-3','fe-4','fe-5','fe-6','fe-9a','fe-10'],
+    logs:[
+      {cls:'log-info',msg:'> PaymentDetails.Builder("flipkart", NET_BANKING, 2500.0).netBankingCredentials("john","secret").build()'},
+      {cls:'log-info',msg:'> PaymentGateway.makePayment(details)'},
+      {cls:'',msg:'  Validating client "flipkart" exists... OK'},
+      {cls:'',msg:'  Validating flipkart supports NET_BANKING... OK'},
+      {cls:'',msg:'  Validating instrument: username, password present... OK'},
+      {cls:'log-warn',msg:'  PaymentRouter.selectBank(NET_BANKING)'},
+      {cls:'log-warn',msg:'  Priority 1: Method route found -> NET_BANKING => ICICI'},
+      {cls:'',msg:'  Bank ICICI.processPayment() -> random result...'},
+      {cls:'log-success',msg:'  Result: SUCCESS'},
+      {cls:'log-success',msg:'  Transaction created: Txn[def67890] client=flipkart bank=ICICI method=NET_BANKING amount=2500.0 status=SUCCESS'}
+    ]
+  },
+  upi: {
+    path:['fn-client','fn-build','fn-pg','fn-validate-client','fn-validate-instrument','fn-router','fn-method-route','fn-weighted','fn-bank','fn-txn'],
+    edges:['fe-1','fe-2','fe-3','fe-4','fe-5','fe-6','fe-7','fe-9b','fe-10'],
+    logs:[
+      {cls:'log-info',msg:'> PaymentDetails.Builder("amazon", UPI, 499.0).upiVpa("user@oksbi").build()'},
+      {cls:'log-info',msg:'> PaymentGateway.makePayment(details)'},
+      {cls:'',msg:'  Validating client "amazon" exists... OK'},
+      {cls:'',msg:'  Validating amazon supports UPI... OK'},
+      {cls:'',msg:'  Validating instrument: VPA present... OK'},
+      {cls:'log-warn',msg:'  PaymentRouter.selectBank(UPI)'},
+      {cls:'',msg:'  Priority 1: No method-specific route for UPI'},
+      {cls:'log-warn',msg:'  Priority 2: Weighted distribution -> HDFC(70%) / SBI(30%)'},
+      {cls:'log-warn',msg:'  Random roll: 42 -> falls in HDFC bucket (0-69)'},
+      {cls:'',msg:'  Bank HDFC.processPayment() -> random result...'},
+      {cls:'log-success',msg:'  Result: SUCCESS'},
+      {cls:'log-success',msg:'  Transaction created: Txn[ghi11111] client=amazon bank=HDFC method=UPI amount=499.0 status=SUCCESS'}
+    ]
+  },
+  fail: {
+    path:['fn-client','fn-build','fn-pg','fn-validate-client','fn-validate-instrument'],
+    edges:['fe-1','fe-2','fe-3','fe-4'],
+    logs:[
+      {cls:'log-info',msg:'> PaymentDetails.Builder("flipkart", CREDIT_CARD, 100.0).build()   // NO card details!'},
+      {cls:'log-info',msg:'> PaymentGateway.makePayment(details)'},
+      {cls:'',msg:'  Validating client "flipkart" exists... OK'},
+      {cls:'',msg:'  Validating flipkart supports CREDIT_CARD... OK'},
+      {cls:'log-fail',msg:'  Validating instrument: cardNumber=null, expiry=null, cvv=null'},
+      {cls:'log-fail',msg:'  REJECTED: IllegalArgumentException("Invalid instrument details for CREDIT_CARD")'},
+      {cls:'log-fail',msg:'  Payment NOT processed. No bank contacted. No transaction created.'}
+    ]
+  }
+};
+
+let simRunning = false;
+function runSim(type){
+  if(simRunning) return;
+  simRunning = true;
+  document.querySelectorAll('.sim-btn').forEach(b=>{b.classList.remove('active-sim');b.disabled=true});
+  document.getElementById('sim'+{cc:'CC',nb:'NB',upi:'UPI',fail:'Fail'}[type]).classList.add('active-sim');
+
+  // reset
+  document.querySelectorAll('.flow-node').forEach(n=>n.classList.remove('lit'));
+  document.querySelectorAll('.flow-edge').forEach(e=>e.classList.remove('lit'));
+  document.getElementById('flowLog').innerHTML='';
+
+  const sc = scenarios[type];
+  let i = 0;
+  function step(){
+    if(i < sc.path.length){
+      document.getElementById(sc.path[i]).classList.add('lit');
+    }
+    if(i > 0 && i-1 < sc.edges.length){
+      document.getElementById(sc.edges[i-1]).classList.add('lit');
+    }
+    // log lines
+    const logsPerStep = Math.ceil(sc.logs.length / sc.path.length);
+    const startLog = i * logsPerStep;
+    const endLog = Math.min(startLog + logsPerStep, sc.logs.length);
+    for(let l=startLog; l<endLog; l++){
+      const div = document.createElement('div');
+      div.className = 'log-line '+(sc.logs[l].cls||'');
+      div.textContent = sc.logs[l].msg;
+      div.style.animationDelay = ((l-startLog)*0.15)+'s';
+      document.getElementById('flowLog').appendChild(div);
+    }
+    document.getElementById('flowLog').scrollTop = 9999;
+    i++;
+    if(i <= sc.path.length){
+      setTimeout(step, 700);
+    } else {
+      simRunning = false;
+      document.querySelectorAll('.sim-btn').forEach(b=>b.disabled=false);
+    }
+  }
+  step();
+}
+
+// ==================== STEP-BY-STEP WALKTHROUGH ====================
+const steps = [
+  { title:'1. Setup Banks',
+    body:'Create <code>Bank</code> instances: HDFC, ICICI, SBI. These are mock banks that randomly return SUCCESS/FAILURE (~80% success). Each tracks its own success rate via synchronized counters.',
+    classes:[{name:'Bank',color:'#22c55e'}]},
+  { title:'2. Configure Router',
+    body:'Create <code>PaymentRouter</code> and add all banks. Set method-specific routes: <code>CREDIT_CARD &rarr; HDFC</code>, <code>NET_BANKING &rarr; ICICI</code>. Set weighted distribution for everything else: <code>HDFC 70%</code>, <code>SBI 30%</code>.',
+    classes:[{name:'PaymentRouter',color:'#eab308'},{name:'RoutingStrategy',color:'#eab308'}]},
+  { title:'3. Create Payment Gateway (Facade)',
+    body:'Create <code>PaymentGateway</code> with the router. This is the single entry point for all API calls. Internally uses <code>ConcurrentHashMap</code> for clients and thread-safe collections throughout.',
+    classes:[{name:'PaymentGateway',color:'#3b82f6'}]},
+  { title:'4. Register Payment Methods',
+    body:'Call <code>addSupportForPaymode()</code> for each method (UPI, CC, DC, NB) at the PG level. These are the master list of methods the PG supports.',
+    classes:[{name:'PaymentMethod',color:'#a855f7'},{name:'PaymentGateway',color:'#3b82f6'}]},
+  { title:'5. Onboard Clients',
+    body:'Call <code>addClient("flipkart")</code> and <code>addClient("amazon")</code>. Then assign methods per client: Flipkart gets all 4 methods, Amazon gets only UPI and Credit Card. Clients are stored in a <code>ConcurrentHashMap</code>.',
+    classes:[{name:'Client',color:'#22c55e'},{name:'PaymentGateway',color:'#3b82f6'}]},
+  { title:'6. Build Payment Request',
+    body:'Use <code>PaymentDetails.Builder("flipkart", CREDIT_CARD, 1500).cardDetails("4111..","12/26","789").build()</code>. The Builder pattern ensures only relevant instrument fields are set per method type.',
+    classes:[{name:'PaymentDetails',color:'#22c55e'}]},
+  { title:'7. makePayment() — Validation',
+    body:'<code>PaymentGateway.makePayment()</code> first validates: (1) client exists, (2) client supports the payment method, (3) instrument details are valid for the method. If any check fails, an exception is thrown immediately.',
+    classes:[{name:'PaymentGateway',color:'#3b82f6'},{name:'Client',color:'#22c55e'},{name:'PaymentDetails',color:'#22c55e'}]},
+  { title:'8. makePayment() — Routing',
+    body:'<code>PaymentRouter.selectBank(CREDIT_CARD)</code> checks three tiers: (1) Is there a method-specific route? Yes &rarr; HDFC. If not, (2) weighted distribution, (3) random fallback. For CC, HDFC is returned directly.',
+    classes:[{name:'PaymentRouter',color:'#eab308'},{name:'Bank',color:'#22c55e'}]},
+  { title:'9. makePayment() — Processing',
+    body:'<code>Bank.processPayment()</code> is called on the selected bank (HDFC). The synchronized method randomly returns SUCCESS or FAILURE and updates internal stats. A <code>Transaction</code> record is created and stored.',
+    classes:[{name:'Bank',color:'#22c55e'},{name:'Transaction',color:'#22c55e'},{name:'TransactionStatus',color:'#a855f7'}]},
+  { title:'10. Result',
+    body:'The <code>Transaction</code> is returned to the caller: <code>Txn[abc123] client=flipkart bank=HDFC method=CREDIT_CARD amount=1500.0 status=SUCCESS</code>. All transactions are stored in a <code>synchronizedList</code> and queryable per client.',
+    classes:[{name:'Transaction',color:'#22c55e'},{name:'PaymentGateway',color:'#3b82f6'}]}
+];
+
+let currentStep = 0;
+function renderStep(){
+  // dots
+  let bar = '';
+  for(let i=0;i<steps.length;i++){
+    if(i>0) bar += `<div class="step-connector ${i<=currentStep?'done':''}"></div>`;
+    bar += `<div class="step-dot ${i<currentStep?'done':''} ${i===currentStep?'current':''}" onclick="goStep(${i})">${i+1}</div>`;
+  }
+  document.getElementById('stepBar').innerHTML = bar;
+
+  const s = steps[currentStep];
+  let html = `<h3>${s.title}</h3><p>${s.body}</p>`;
+  html += '<div class="highlight-classes">' + s.classes.map(c=>`<span class="hc" style="background:${c.color}22;color:${c.color};border:1px solid ${c.color}">${c.name}</span>`).join('') + '</div>';
+  document.getElementById('stepContent').innerHTML = html;
+  document.getElementById('prevBtn').disabled = currentStep===0;
+  document.getElementById('nextBtn').disabled = currentStep===steps.length-1;
+}
+function stepNext(){ if(currentStep<steps.length-1){currentStep++;renderStep()}}
+function stepPrev(){ if(currentStep>0){currentStep--;renderStep()}}
+function goStep(i){ currentStep=i; renderStep(); }
+renderStep();
+
+// ==================== API PLAYGROUND ====================
+// In-memory PG state
+const pgState = {
+  paymodes: new Set(),
+  clients: {},       // clientId -> Set of methods
+  banks: {HDFC:{s:0,t:0},ICICI:{s:0,t:0},SBI:{s:0,t:0}},
+  methodRoutes: {CREDIT_CARD:'HDFC',NET_BANKING:'ICICI'},
+  distribution: {HDFC:70,SBI:30},
+  transactions: []
+};
+
+const allMethods = ['CREDIT_CARD','DEBIT_CARD','UPI','NET_BANKING'];
+
+function onApiChange(){
+  const v = document.getElementById('apiSelect').value;
+  const p = document.getElementById('pgParams');
+  const methodOpts = allMethods.map(m=>`<option value="${m}">${m}</option>`).join('');
+  switch(v){
+    case 'addClient':
+    case 'removeClient':
+    case 'hasClient':
+      p.innerHTML = `<span class="pg-label">Client ID</span><input class="pg-input" id="p1" placeholder="e.g. flipkart"/>`;
+      break;
+    case 'addPaymode':
+    case 'removePaymode':
+      p.innerHTML = `<span class="pg-label">Method</span><select class="pg-select" id="p1">${methodOpts}</select>`;
+      break;
+    case 'addClientPaymode':
+      p.innerHTML = `<span class="pg-label">Client</span><input class="pg-input" id="p1" placeholder="clientId"/>
+        <span class="pg-label">Method</span><select class="pg-select" id="p2">${methodOpts}</select>`;
+      break;
+    case 'listClientPaymodes':
+      p.innerHTML = `<span class="pg-label">Client ID</span><input class="pg-input" id="p1" placeholder="clientId"/>`;
+      break;
+    case 'makePayment':
+      p.innerHTML = `<span class="pg-label">Client</span><input class="pg-input" id="p1" placeholder="clientId" style="width:100px"/>
+        <span class="pg-label">Method</span><select class="pg-select" id="p2">${methodOpts}</select>
+        <span class="pg-label">Amount</span><input class="pg-input" id="p3" placeholder="500" type="number" style="width:80px"/>
+        <span class="pg-label">Instrument</span><input class="pg-input" id="p4" placeholder="card:4111..,12/26,789 | upi:x@upi | nb:user,pass" style="width:280px"/>`;
+      break;
+    default:
+      p.innerHTML = '';
+  }
+}
+onApiChange();
+
+function out(msg,cls){
+  const o = document.getElementById('pgOutput');
+  o.innerHTML += `<div class="${cls||''}">${msg}</div>`;
+  o.scrollTop = 9999;
+}
+
+function runApi(){
+  const v = document.getElementById('apiSelect').value;
+  const o = document.getElementById('pgOutput');
+  o.innerHTML += '<div style="border-top:1px solid #334155;margin:8px 0"></div>';
+
+  const gv = id => { const e=document.getElementById(id); return e?e.value.trim():''; };
+
+  try {
+    switch(v){
+      case 'addClient': {
+        const id = gv('p1');
+        if(!id) throw 'Client ID required';
+        if(pgState.clients[id]) throw `Client already exists: ${id}`;
+        pgState.clients[id] = new Set();
+        out(`> addClient("${id}")`, 'log-info');
+        out('  OK - client added','log-success');
+        break;
+      }
+      case 'removeClient': {
+        const id = gv('p1');
+        if(!pgState.clients[id]) throw `Client not found: ${id}`;
+        delete pgState.clients[id];
+        out(`> removeClient("${id}")`, 'log-info');
+        out('  OK - client removed','log-success');
+        break;
+      }
+      case 'hasClient': {
+        const id = gv('p1');
+        const has = !!pgState.clients[id];
+        out(`> hasClient("${id}")`, 'log-info');
+        out(`  Result: ${has}`, has?'log-success':'log-warn');
+        break;
+      }
+      case 'addPaymode': {
+        const m = gv('p1');
+        pgState.paymodes.add(m);
+        out(`> addSupportForPaymode(${m})`, 'log-info');
+        out('  OK - PG now supports: ['+[...pgState.paymodes].join(', ')+']','log-success');
+        break;
+      }
+      case 'removePaymode': {
+        const m = gv('p1');
+        pgState.paymodes.delete(m);
+        out(`> removePaymode(${m})`, 'log-info');
+        out('  OK - PG now supports: ['+[...pgState.paymodes].join(', ')+']','log-success');
+        break;
+      }
+      case 'addClientPaymode': {
+        const id = gv('p1'), m = gv('p2');
+        if(!pgState.clients[id]) throw `Client not found: ${id}`;
+        if(!pgState.paymodes.has(m)) throw `PG does not support ${m}. Add it first.`;
+        pgState.clients[id].add(m);
+        out(`> addSupportForPaymode("${id}", ${m})`, 'log-info');
+        out('  OK - '+id+' methods: ['+[...pgState.clients[id]].join(', ')+']','log-success');
+        break;
+      }
+      case 'listPaymodes': {
+        out('> listSupportedPaymodes()', 'log-info');
+        out('  ['+[...pgState.paymodes].join(', ')+']');
+        break;
+      }
+      case 'listClientPaymodes': {
+        const id = gv('p1');
+        if(!pgState.clients[id]) throw `Client not found: ${id}`;
+        out(`> listSupportedPaymodes("${id}")`, 'log-info');
+        out('  ['+[...pgState.clients[id]].join(', ')+']');
+        break;
+      }
+      case 'showDistribution': {
+        out('> showDistribution()', 'log-info');
+        out('  Method routes: '+JSON.stringify(pgState.methodRoutes));
+        out('  Distribution: '+JSON.stringify(pgState.distribution));
+        break;
+      }
+      case 'makePayment': {
+        const cid = gv('p1'), m = gv('p2'), amt = parseFloat(gv('p3'))||0, instr = gv('p4');
+        if(!pgState.clients[cid]) throw `Client not found: ${cid}`;
+        if(!pgState.clients[cid].has(m)) throw `Client ${cid} does not support ${m}`;
+
+        // validate instrument
+        let valid = false;
+        if((m==='CREDIT_CARD'||m==='DEBIT_CARD') && instr.startsWith('card:') && instr.split(',').length>=3) valid=true;
+        if(m==='UPI' && instr.startsWith('upi:') && instr.length>4) valid=true;
+        if(m==='NET_BANKING' && instr.startsWith('nb:') && instr.split(',').length>=2) valid=true;
+        if(!valid) throw `Invalid instrument for ${m}. Format: card:num,exp,cvv | upi:vpa | nb:user,pass`;
+
+        // route
+        let bank = pgState.methodRoutes[m];
+        let routeType = 'method-route';
+        if(!bank){
+          const r = Math.random()*100;
+          let cum = 0;
+          for(const [b,p] of Object.entries(pgState.distribution)){
+            cum+=p; if(r<cum){bank=b;break;}
+          }
+          routeType = 'weighted-distribution';
+        }
+        if(!bank) { bank='HDFC'; routeType='random-fallback'; }
+
+        const success = Math.random()>0.2;
+        const status = success?'SUCCESS':'FAILURE';
+        const txnId = Math.random().toString(36).substring(2,10);
+        pgState.transactions.push({txnId,cid,bank,m,amt,status});
+
+        out(`> makePayment(client=${cid}, method=${m}, amount=${amt})`, 'log-info');
+        out(`  Routing: ${routeType} -> ${bank}`, 'log-warn');
+        out(`  Txn[${txnId}] client=${cid} bank=${bank} method=${m} amount=${amt} status=${status}`,
+            success?'log-success':'log-fail');
+        break;
+      }
+    }
+  } catch(e){
+    out('  ERROR: '+e, 'log-fail');
+  }
+}
+</script>
+</body>
+</html>
