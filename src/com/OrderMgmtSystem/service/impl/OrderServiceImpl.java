@@ -9,8 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.OrderMgmtSystem.exception.ErrorCode;
 import com.OrderMgmtSystem.exception.OrderException;
-import com.OrderMgmtSystem.inventory.impl.ExternalInventoryProvider;
-import com.OrderMgmtSystem.inventory.impl.InternalInventoryProvider;
 import com.OrderMgmtSystem.inventory.interfaces.InventoryProvider;
 import com.OrderMgmtSystem.model.Order;
 import com.OrderMgmtSystem.model.OrderItem;
@@ -19,15 +17,15 @@ import com.OrderMgmtSystem.model.SellerType;
 import com.OrderMgmtSystem.service.interfaces.OrderService;
 
 public class OrderServiceImpl implements OrderService {
-    private final InternalInventoryProvider internalProvider;
-    private final ExternalInventoryProvider externalProvider;
+    private final InventoryProvider internalProvider;
+    private final InventoryProvider externalProvider;
     private final ConcurrentHashMap<String, Order> orders = new ConcurrentHashMap<>();
     private final AtomicInteger orderCounter = new AtomicInteger(0);
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final long autoCancelDelayMs;
 
-    public OrderServiceImpl(InternalInventoryProvider internalProvider,
-                            ExternalInventoryProvider externalProvider,
+    public OrderServiceImpl(InventoryProvider internalProvider,
+                            InventoryProvider externalProvider,
                             long autoCancelDelayMs) {
         this.internalProvider = internalProvider;
         this.externalProvider = externalProvider;

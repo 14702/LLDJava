@@ -6,8 +6,8 @@ import com.CustomerIssueResolutionSystem.service.interfaces.IssueService;
 import com.CustomerIssueResolutionSystem.service.impl.AgentServiceImpl;
 import com.CustomerIssueResolutionSystem.service.impl.IssueServiceImpl;
 import com.CustomerIssueResolutionSystem.exceptions.InvalidInputException;
-import com.CustomerIssueResolutionSystem.repository.AgentRepository;
-import com.CustomerIssueResolutionSystem.repository.IssueRepository;
+import com.CustomerIssueResolutionSystem.repository.impl.AgentRepository;
+import com.CustomerIssueResolutionSystem.repository.impl.IssueRepository;
 import com.CustomerIssueResolutionSystem.strategy.impl.SimpleAgentAssignmentStrategy;
 import com.CustomerIssueResolutionSystem.strategy.interfaces.AgentAssignmentStrategy;
 

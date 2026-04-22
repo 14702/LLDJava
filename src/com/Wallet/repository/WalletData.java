@@ -1,14 +1,14 @@
 package com.Wallet.repository;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import com.Wallet.exceptions.NoWalletFoundException;
 import com.Wallet.model.Wallet;
 
 public class WalletData {
-    Map<String, Wallet> walletIdToWallet = new HashMap<>();
-    Map<String, String> userIdToWalletId = new HashMap<>();
+    Map<String, Wallet> walletIdToWallet = new ConcurrentHashMap<>();
+    Map<String, String> userIdToWalletId = new ConcurrentHashMap<>();
 
     public Wallet getWalletByUserId(String userId){
         String walletId = userIdToWalletId.get(userId);

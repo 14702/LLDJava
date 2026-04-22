@@ -1,19 +1,27 @@
 package com.Wallet.model;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class Wallet {
-    String walletId;
-    Double balance;
+    private final String walletId;
+    private double balance;
+    private final ReentrantLock lock = new ReentrantLock();
 
-    public Wallet(String newWalletId, double balance) {
-        this.walletId = newWalletId;
+    public Wallet(String walletId, double balance) {
+        this.walletId = walletId;
         this.balance = balance;
     }
-//  List<Transaction> transactionList;
-    public Double getBalance(){
-        return this.balance;
+
+    public double getBalance() {
+        lock.lock();
+        try { return this.balance; } finally { lock.unlock(); }
     }
 
-    public void setBalance(Double balance){
-        this.balance = balance;
+    public void setBalance(double balance) {
+        lock.lock();
+        try { this.balance = balance; } finally { lock.unlock(); }
     }
+
+    public String getWalletId() { return walletId; }
+    public ReentrantLock getLock() { return lock; }
 }

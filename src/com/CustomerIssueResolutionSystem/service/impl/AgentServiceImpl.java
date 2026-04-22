@@ -6,27 +6,25 @@ import com.CustomerIssueResolutionSystem.exceptions.AgentNotFoundException;
 import com.CustomerIssueResolutionSystem.exceptions.InvalidInputException;
 import com.CustomerIssueResolutionSystem.model.Agent;
 import com.CustomerIssueResolutionSystem.model.Issue;
-import com.CustomerIssueResolutionSystem.repository.AgentRepository;
+import com.CustomerIssueResolutionSystem.repository.interfaces.AgentRepositoryInterface;
 import com.CustomerIssueResolutionSystem.service.interfaces.AgentService;
 import com.CustomerIssueResolutionSystem.strategy.interfaces.AgentAssignmentStrategy;
 
-import com.CustomerIssueResolutionSystem.repository.IssueRepository;
+import com.CustomerIssueResolutionSystem.repository.interfaces.IssueRepositoryInterface;
 
 import java.util.*;
 
 public class AgentServiceImpl implements AgentService {
-    AgentRepository agentRepository;
-    IssueRepository issueRepository;
+    AgentRepositoryInterface agentRepository;
+    IssueRepositoryInterface issueRepository;
     AgentAssignmentStrategy agentAssignmentStrategy;
 
-    public AgentServiceImpl(AgentRepository agentRepository, IssueRepository issueRepository, AgentAssignmentStrategy agentAssignmentStrategy){
+    public AgentServiceImpl(AgentRepositoryInterface agentRepository, IssueRepositoryInterface issueRepository, AgentAssignmentStrategy agentAssignmentStrategy){
         this.agentRepository = agentRepository;
         this.issueRepository = issueRepository;
         this.agentAssignmentStrategy = agentAssignmentStrategy;
     }
 
-    //addAgent(“agent1@test.com”, “Agent 1”, Arrays.asList("Payment Related", "Gold Related"));
-    //Agent A1 created
     @Override
     public void addAgent(String email, String name, List<String> expertiseList) {
         // ✅ FIX: Add validation
@@ -104,13 +102,6 @@ public class AgentServiceImpl implements AgentService {
         agentRepository.removeAgentFromRepository(agentId);
         System.out.println("Agent " + agentId + " deleted successfully and all issues reassigned");
     }
-
-    // updateAgentExpertise(String agentId, List<String>expertiseList){                                        // + when agent experstise changes, all the issues assigned to it should be reassigned to other agents
-    //  Agent agent = agentRepository.getAgentById(agentId);
-    //  check if agent can handle current issue, if not then reassign the issue to another agent
-    //
-    //  for the waiting list of agent, check if issue he can handle or need to reassign
-    // }
 
     @Override
     public void updateAgentExpertise(String agentId, List<String> newExpertiseList) 

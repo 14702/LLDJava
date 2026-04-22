@@ -1,33 +1,31 @@
 package com.InventoryManagementSystem;
 
+import com.InventoryManagementSystem.model.*;
+import com.InventoryManagementSystem.service.impl.InventoryServiceImpl;
+import com.InventoryManagementSystem.service.interfaces.InventoryService;
+import com.InventoryManagementSystem.strategy.impl.NearestWarehouseStrategy;
+
 public class Main {
-    public static void main (String [] args){
-        // create new system
-        // create 1 warehouse
-        // add 2 products to warehouse
-        // add WH strategy
-        // Create 1 user and add 2 products to cart
-        // create order and complete payment
+    public static void main(String[] args) {
+        InventoryService service = new InventoryServiceImpl();
+        service.setStrategy(new NearestWarehouseStrategy());
 
-        Zepto zepto = new Zepto(1); // create 1 WH
-        Product pepsi = new Product(1, "pepsi", 100);
-        Product coke = new Product(2, "coke", 200);
+        Warehouse wh = new Warehouse(0, "Mumbai");
+        service.addWarehouse(wh);
 
-        Warehouse warehouse0 = zepto.warehouseController.getWarehouse(0);
-        warehouse0.addProductToWarehouse(pepsi);
-        warehouse0.addProductToWarehouse(coke);
+        Product pepsi = new Product(1, "Pepsi", 100);
+        Product coke = new Product(2, "Coke", 200);
+        service.addProductToWarehouse(0, pepsi);
+        service.addProductToWarehouse(0, coke);
 
-        User user1 = new User(1, "Somesh");
-        user1.cart.addProduct(pepsi);
-        user1.cart.addProduct(coke);
+        User user = new User(1, "Somesh");
+        user.getCart().addProduct(pepsi);
+        user.getCart().addProduct(coke);
 
-        zepto.warehouseController.placeOrder(user1.cart);
-        zepto.warehouseController.placeOrder(user1.cart);
+        Order order1 = service.placeOrder(user);
+        System.out.println("Order paid: " + (order1 != null && order1.isPaid()));
 
-        // Expansion
-        // add item count for each product
-        // Add multiple warehouse list and add these warehouse to diff city (use HashMap)
-        // Implement other strategy (nearest, cheapest)
-        //
+        Order order2 = service.placeOrder(user);
+        System.out.println("Second order (no inventory): " + (order2 == null ? "failed as expected" : "unexpected success"));
     }
 }

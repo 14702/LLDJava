@@ -1,25 +1,56 @@
 package com.Splitwise;
 
+import com.Splitwise.enums.ExpenseType;
+import com.Splitwise.model.User;
+import com.Splitwise.service.impl.SplitwiseServiceImpl;
+import com.Splitwise.service.interfaces.SplitwiseService;
+import com.Splitwise.split.impl.*;
+import com.Splitwise.split.interfaces.SplitStrategy;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class Main {
-    public static void main (String [] args){
-        // create users and add the, to expense controller
-        // exprensecontroller holds all the data - list<expense>, map <id, User>, map <id, balancesheet ==  userid, amount >
-        // when expesnse is added we just update the amount from 2 places, paid by & owed by (get them via map)
-        // expense = Sum of Splits (User, amount)
-        // expense type is 3 types, equal,exact, %. So create 3 split types and 3 expense type classes
-        // We usually make types and similar class types so that we know for which type we have to create which object
+    public static void main(String[] args) {
+        Map<ExpenseType, SplitStrategy> strategies = new HashMap<>();
+        strategies.put(ExpenseType.EQUAL, new EqualSplitStrategy());
+        strategies.put(ExpenseType.EXACT, new ExactSplitStrategy());
+        strategies.put(ExpenseType.PERCENTAGE, new PercentageSplitStrategy());
 
+        SplitwiseService service = new SplitwiseServiceImpl(strategies);
 
-        User u1 = new User (1, "u1");
-        User u2 = new User (2, "u2");
-        User u3 = new User (3, "u3");
+        User u1 = new User(1, "Alice");
+        User u2 = new User(2, "Bob");
+        User u3 = new User(3, "Charlie");
+        service.addUser(u1);
+        service.addUser(u2);
+        service.addUser(u3);
 
-        ExpenseController expenseController = new ExpenseController();
-        expenseController.addUser(u1);
-        expenseController.addUser(u2);
-        expenseController.addUser(u3);
+        System.out.println("=== EQUAL SPLIT: Alice pays 900 ===");
+        service.addExpense(ExpenseType.EQUAL, 900, 1, null);
+        service.printBalances();
 
-        expenseController.addExpense(ExpenseType.EQUAL, 1, 1000, 2);
-        System.out.println(expenseController.balanceSheet.get(1).get(2));
+        System.out.println("\n=== EXACT SPLIT: Bob pays 1000 (Alice=200, Bob=500, Charlie=300) ===");
+        Map<Integer, Integer> exact = new HashMap<>();
+        exact.put(1, 200);
+        exact.put(2, 500);
+        exact.put(3, 300);
+        service.addExpense(ExpenseType.EXACT, 1000, 2, exact);
+        service.printBalances();
+
+        System.out.println("\n=== PERCENTAGE SPLIT: Charlie pays 600 (Alice=50%, Bob=25%, Charlie=25%) ===");
+        Map<Integer, Integer> pct = new HashMap<>();
+        pct.put(1, 50);
+        pct.put(2, 25);
+        pct.put(3, 25);
+        service.addExpense(ExpenseType.PERCENTAGE, 600, 3, pct);
+        service.printBalances();
+
+        System.out.println("\n=== Alice's balances ===");
+        Map<Integer, Integer> aliceBalances = service.getBalancesForUser(1);
+        for (Map.Entry<Integer, Integer> e : aliceBalances.entrySet()) {
+            System.out.println("  vs User#" + e.getKey() + " : " + e.getValue()
+                    + (e.getValue() > 0 ? " (owed to Alice)" : " (Alice owes)"));
+        }
     }
 }

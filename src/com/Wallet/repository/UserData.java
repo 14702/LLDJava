@@ -1,13 +1,13 @@
 package com.Wallet.repository;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import com.Wallet.exceptions.NoUserFound;
 import com.Wallet.model.User;
 
 public class UserData {
-    Map<String, User> userIdToUser = new HashMap<>();
+    Map<String, User> userIdToUser = new ConcurrentHashMap<>();
 
     public User getUserById(String id){
         User user = userIdToUser.get(id);

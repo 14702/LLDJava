@@ -1,23 +1,24 @@
 package com.ParkingLot;
 
+import com.ParkingLot.enums.VehicleType;
+import com.ParkingLot.model.*;
+import com.ParkingLot.payment.impl.UPIPayment;
+import com.ParkingLot.service.impl.ParkingServiceImpl;
+import com.ParkingLot.service.interfaces.ParkingService;
+import com.ParkingLot.strategy.impl.NearestParkingStrategy;
+
 public class Main {
-    public static void main (String [] args){
-        // create new parking Lot, manager, spot
-        // create vehicle and enter it through entry gate
-        // generate ticket, which has info of vehicle, spot and id
-        // exit gate will check ticket, its id and collect payment and free the spot
+    public static void main(String[] args) {
+        ParkingService parkingService = new ParkingServiceImpl(
+                10, 20, new NearestParkingStrategy(), new UPIPayment());
 
-        ParkingLot parkingLot = new ParkingLot(10);
+        Vehicle v1 = new Vehicle(1, VehicleType.TWO);
+        Vehicle v2 = new Vehicle(2, VehicleType.FOUR);
 
-        Vehicle veh1 = new Vehicle(1, VehicleType.TWO);
-        Vehicle veh2 = new Vehicle(2, VehicleType.TWO);
+        Ticket t1 = parkingService.entry(v1, 2);
+        Ticket t2 = parkingService.entry(v2, 3);
 
-
-        Ticket ticket1 = parkingLot.generateTicket(veh1);
-        Ticket ticket2= parkingLot.generateTicket(veh2);
-
-        parkingLot.exitVehicle(ticket1);
-        parkingLot.exitVehicle(ticket2);
-
+        parkingService.exit(t1);
+        parkingService.exit(t2);
     }
 }

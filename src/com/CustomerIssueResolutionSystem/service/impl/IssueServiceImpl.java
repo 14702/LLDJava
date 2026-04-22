@@ -4,8 +4,8 @@ import com.CustomerIssueResolutionSystem.enums.IssueStatus;
 import com.CustomerIssueResolutionSystem.enums.IssueType;
 import com.CustomerIssueResolutionSystem.exceptions.InvalidInputException;
 import com.CustomerIssueResolutionSystem.exceptions.IssueNotFoundException;
-import com.CustomerIssueResolutionSystem.repository.AgentRepository;
-import com.CustomerIssueResolutionSystem.repository.IssueRepository;
+import com.CustomerIssueResolutionSystem.repository.interfaces.AgentRepositoryInterface;
+import com.CustomerIssueResolutionSystem.repository.interfaces.IssueRepositoryInterface;
 import com.CustomerIssueResolutionSystem.model.Issue;
 import com.CustomerIssueResolutionSystem.model.Agent;
 import com.CustomerIssueResolutionSystem.service.interfaces.IssueService;
@@ -16,15 +16,14 @@ import java.util.Queue;
 import java.util.stream.Collectors;  // ✅ Now used
 
 public class IssueServiceImpl implements IssueService {
-    IssueRepository issueRepository;
-    AgentRepository agentRepository;
+    IssueRepositoryInterface issueRepository;
+    AgentRepositoryInterface agentRepository;
 
-    public IssueServiceImpl(IssueRepository issueRepository, AgentRepository agentRepository){
+    public IssueServiceImpl(IssueRepositoryInterface issueRepository, AgentRepositoryInterface agentRepository){
         this.issueRepository = issueRepository;
         this.agentRepository = agentRepository;
     }
     
-    // "T3", "Payment Related", "Payment Failed", "My payment failed but money is debited",“testUser2@test.com”
     @Override
     public Issue createIssue(String transId, String issueType, String subject, 
                             String description, String customerEmail){

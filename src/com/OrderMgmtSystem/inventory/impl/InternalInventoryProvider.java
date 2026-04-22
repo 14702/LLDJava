@@ -18,6 +18,7 @@ public class InternalInventoryProvider implements InventoryProvider {
         return locks.computeIfAbsent(itemId, k -> new ReentrantLock());
     }
 
+    @Override
     public void addItem(String itemId, int quantity, double pricePerUnit) {
         if (quantity <= 0) {
             throw new OrderException(ErrorCode.INVALID_QUANTITY, "Quantity must be positive");

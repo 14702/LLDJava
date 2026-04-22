@@ -21,6 +21,11 @@ public class ExternalInventoryProvider implements InventoryProvider {
         inventory.put("EXT_CASE", new InventoryItem("EXT_CASE", 300, 250));
     }
 
+    @Override
+    public void addItem(String itemId, int quantity, double pricePerUnit) {
+        throw new OrderException(ErrorCode.EXTERNAL_INVENTORY_UNMANAGED, "Cannot add items to external inventory");
+    }
+
     private ReentrantLock getLock(String itemId) {
         return locks.computeIfAbsent(itemId, k -> new ReentrantLock());
     }
