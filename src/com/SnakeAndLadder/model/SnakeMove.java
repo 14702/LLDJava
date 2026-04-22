@@ -6,7 +6,7 @@ public class SnakeMove extends Move {
 
     private Integer end;
 
-    SnakeMove(ElementType elementType) {
+    public SnakeMove(ElementType elementType) {
         super(elementType);
     }
 

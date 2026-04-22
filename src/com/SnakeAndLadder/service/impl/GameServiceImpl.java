@@ -2,7 +2,6 @@ package com.SnakeAndLadder.service.impl;
 
 import com.SnakeAndLadder.enums.ElementType;
 import com.SnakeAndLadder.enums.PlayerStatus;
-import com.SnakeAndLadder.model.Board;
 import com.SnakeAndLadder.model.*;
 import com.SnakeAndLadder.service.interfaces.GameService;
 import com.SnakeAndLadder.strategy.interfaces.Strategy;
@@ -11,19 +10,16 @@ import java.util.*;
 
 public class GameServiceImpl implements GameService {
     private Board board;
-    int size;
+    private int size;
     private Integer numOfDice;
-    private Map<Integer, Player> res = new HashMap<>();
+    private List<Player> players = new ArrayList<>();
     private Strategy strategy;
-
-
+    private int[] manualDice;
+    private int manualIndex = 0;
 
     @Override
-    public Boolean addPlayers(Integer numOfPlayers) {
-
-        for(int i=1;i<=numOfPlayers;i++) {
-            res.putIfAbsent(i, new Player(i, 0, PlayerStatus.PENDING));
-        }
+    public Boolean addPlayer(String name, int startPosition) {
+        players.add(new Player(players.size() + 1, name, startPosition, PlayerStatus.PENDING));
         return true;
     }
 
@@ -31,7 +27,7 @@ public class GameServiceImpl implements GameService {
     public Boolean addBoardSize(Integer size) {
         this.size = size;
         List<Cell> cellList = new ArrayList<>();
-        for(int i=0;i<=size;i++)
+        for (int i = 0; i <= size; i++)
             cellList.add(new Cell());
         board = new Board(cellList);
         return true;
@@ -50,49 +46,118 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Boolean beginGame() {
-        Queue<Player> que = new LinkedList<>();
-        que.addAll(res.values());
-        while (que.size() > 1) {
-            Player player = que.poll();
-            System.out.println("Player "+ player.getId() + " current position: "+ player.getPosition());
-            Integer value = strategy.getValue(numOfDice);
-            System.out.println("Dice is rolled and the value is = "+value);
-            int pos = player.getPosition() + value;
-            if (pos > size) {
-                System.out.println("Player "+ player.getId() + " can not move out of the box from "+ player.getPosition() +" to "+ pos);
-                que.add(player);
-            } else {
-                while (board.getCells().get(pos).getMove() != null) {
-                    System.out.println("Player "+player.getId()+" got "+board.getCells().get(pos).getMove().getElementType()
-                            +" from : " + pos + " end :" + board.getCells().get(pos).getMove().getPos());
-                    pos = board.getCells().get(pos).getMove().getPos();
-                }
-
-                if (pos == size) {
-                    player.setPosition(pos);
-                    player.setStatus(PlayerStatus.WIN);
-                    System.out.println("Player "+ player.getId() + " : Won.");
-                } else {
-                    System.out.println("Player "+ player.getId() + " moving from = "+ player.getPosition() +" to = "+ pos);
-                    player.setPosition(pos);
-                    que.add(player);
-                }
-
-            }
-
-        }
-        Player player = que.poll();
-        player.setStatus(PlayerStatus.LOSE);
-        System.out.println("All players status : ");
-        System.out.println(res.values());
-        return true;
-    }
-
-    @Override
     public void addStrategy(Strategy strategy) {
         this.strategy = strategy;
     }
 
+    @Override
+    public void setManualDice(int[] diceValues) {
+        this.manualDice = diceValues;
+        this.manualIndex = 0;
+    }
 
+    private int rollDice() {
+        if (manualDice != null && manualIndex < manualDice.length) {
+            return manualDice[manualIndex++];
+        }
+        return strategy.getValue(numOfDice);
+    }
+
+    @Override
+    public Boolean beginGame() {
+        Queue<Player> queue = new LinkedList<>(players);
+
+        while (queue.size() > 1) {
+            Player player = queue.poll();
+
+            if (player.getSkipTurns() > 0) {
+                System.out.println(player.getName() + " is stuck in a mine, skipping turn ("
+                        + player.getSkipTurns() + " left)");
+                player.setSkipTurns(player.getSkipTurns() - 1);
+                queue.add(player);
+                continue;
+            }
+
+            int value = rollDice();
+            int oldPos = player.getPosition();
+            int newPos = oldPos + value;
+
+            if (newPos > size) {
+                System.out.println(player.getName() + " rolled a " + value
+                        + " and moved from " + oldPos + " to " + oldPos);
+                queue.add(player);
+                continue;
+            }
+
+            Move move = board.getCells().get(newPos).getMove();
+            if (move != null) {
+                ElementType type = move.getElementType();
+                int dest = move.getPos();
+
+                switch (type) {
+                    case SNAKE:
+                        System.out.println(player.getName() + " rolled a " + value
+                                + " and bitten by snake at " + newPos
+                                + " and moved from " + newPos + " to " + dest);
+                        newPos = dest;
+                        break;
+                    case LADDER:
+                        System.out.println(player.getName() + " rolled a " + value
+                                + " and climbed the ladder at " + newPos
+                                + " and moved from " + newPos + " to " + dest);
+                        newPos = dest;
+                        break;
+                    case CROCODILE:
+                        System.out.println(player.getName() + " rolled a " + value
+                                + " and bitten by crocodile at " + newPos
+                                + " and moved from " + newPos + " to " + dest);
+                        newPos = dest;
+                        break;
+                    case MINE:
+                        System.out.println(player.getName() + " rolled a " + value
+                                + " and hit a mine at " + newPos
+                                + " and will skip 2 turns");
+                        player.setSkipTurns(2);
+                        break;
+                }
+
+                // chain: destination could have another snake/ladder
+                while (board.getCells().get(newPos).getMove() != null) {
+                    Move chainMove = board.getCells().get(newPos).getMove();
+                    ElementType chainType = chainMove.getElementType();
+                    int chainDest = chainMove.getPos();
+                    if (chainType == ElementType.MINE) {
+                        player.setSkipTurns(2);
+                        System.out.println("  chained into mine at " + newPos + ", skip 2 turns");
+                        break;
+                    }
+                    System.out.println("  chained " + chainType + " at " + newPos + " to " + chainDest);
+                    newPos = chainDest;
+                }
+            } else {
+                System.out.println(player.getName() + " rolled a " + value
+                        + " and moved from " + oldPos + " to " + newPos);
+            }
+
+            player.setPosition(newPos);
+
+            if (newPos == size) {
+                player.setStatus(PlayerStatus.WIN);
+                System.out.println(player.getName() + " wins!");
+            } else {
+                queue.add(player);
+            }
+        }
+
+        if (!queue.isEmpty()) {
+            Player last = queue.poll();
+            last.setStatus(PlayerStatus.LOSE);
+        }
+
+        System.out.println("\n=== Final Status ===");
+        for (Player p : players) {
+            System.out.println(p);
+        }
+        return true;
+    }
 }

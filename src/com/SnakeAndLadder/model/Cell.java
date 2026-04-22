@@ -6,11 +6,13 @@ public class Cell {
     private Move move;
 
     public void setMove(Integer start, Integer end, ElementType type) {
-        this.move = switch (type) {
-            case SNAKE -> new SnakeMove(type);
-            case LADDER -> new LadderMove(type);
-            default -> null;
-        };
+        switch (type) {
+            case SNAKE:     this.move = new SnakeMove(type); break;
+            case LADDER:    this.move = new LadderMove(type); break;
+            case CROCODILE: this.move = new CrocodileMove(type); break;
+            case MINE:      this.move = new MineMove(type); break;
+            default:        this.move = null; break;
+        }
         if (this.move != null)
             this.move.setMove(start, end);
     }

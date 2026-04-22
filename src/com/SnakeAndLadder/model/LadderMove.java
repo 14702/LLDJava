@@ -6,7 +6,7 @@ public class LadderMove extends Move {
     Integer start;
     Integer end;
 
-    LadderMove(ElementType elementType) {
+    public LadderMove(ElementType elementType) {
         super(elementType);
     }
 

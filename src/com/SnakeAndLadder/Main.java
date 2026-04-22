@@ -1,78 +1,71 @@
 package com.SnakeAndLadder;
 
-import com.SnakeAndLadder.model.Dice;
 import com.SnakeAndLadder.enums.ElementType;
-import com.SnakeAndLadder.service.interfaces.GameService;
+import com.SnakeAndLadder.model.Dice;
 import com.SnakeAndLadder.service.impl.GameServiceImpl;
-import com.SnakeAndLadder.strategy.impl.MaxStrategy;
-import com.SnakeAndLadder.strategy.impl.MinStrategy;
+import com.SnakeAndLadder.service.interfaces.GameService;
 import com.SnakeAndLadder.strategy.impl.SumStrategy;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
-
         GameService gameService = new GameServiceImpl();
+        gameService.addBoardSize(100);
+        gameService.numOfDice(1);
+        gameService.addStrategy(new SumStrategy(new Dice()));
 
-
-        try(BufferedReader br = new BufferedReader(new FileReader("src/com/SnakeAndLadder/input.txt"))) {
-
-            String line = br.readLine();
-            while (line!= null) {
-                System.out.println(line);
-                String[] inputs = line.split(" ");
-
-                String action = inputs[0];
-                if (action.equals("PLAYER")) {
-
-                    System.out.println(gameService.addPlayers(Integer.parseInt(inputs[1])));
-
-                } else if(action.equals("BOARD_SIZE")) {
-
-                    System.out.println(gameService.addBoardSize(Integer.parseInt(inputs[1])));
-
-                } else if(action.equals("NUM_DICE")) {
-
-                    System.out.println(gameService.numOfDice(Integer.parseInt(inputs[1])));
-
-                } else if (action.equals("MOVEMENT_STRATEGY")) {
-                    switch (inputs[1]) {
-                        case "SUM":
-                            gameService.addStrategy(new SumStrategy(new Dice()));
-                            break;
-                        case "MAX":
-                            gameService.addStrategy(new MaxStrategy(new Dice()));
-                            break;
-                        case "MIN":
-                            gameService.addStrategy(new MinStrategy(new Dice()));
-                            break;
-                    }
-
-                } else if (action.equals("SNAKE") || action.equals("LADDER")) {
-                    Integer num = Integer.parseInt(inputs[1]);
-                    for (int i=0;i< num;i++) {
-                        String line1 = br.readLine();
-                        System.out.println(line1);
-                        String[] points = line1.split(" ");
-                        gameService.addElements(Integer.parseInt(points[0]), Integer.parseInt(points[1]),
-                                ElementType.valueOf(action));
-                    }
-                }
-
-                line = br.readLine();
+        try (BufferedReader br = new BufferedReader(new FileReader("src/com/SnakeAndLadder/input.txt"))) {
+            // Snakes
+            int snakeCount = Integer.parseInt(br.readLine().trim());
+            for (int i = 0; i < snakeCount; i++) {
+                String[] parts = br.readLine().trim().split(" ");
+                gameService.addElements(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), ElementType.SNAKE);
             }
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            // Ladders
+            int ladderCount = Integer.parseInt(br.readLine().trim());
+            for (int i = 0; i < ladderCount; i++) {
+                String[] parts = br.readLine().trim().split(" ");
+                gameService.addElements(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), ElementType.LADDER);
+            }
+
+            // Optional: Crocodiles and Mines
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                if (line.startsWith("CROCODILE")) {
+                    int count = Integer.parseInt(line.split(" ")[1]);
+                    for (int i = 0; i < count; i++) {
+                        String[] parts = br.readLine().trim().split(" ");
+                        gameService.addElements(Integer.parseInt(parts[0]), 0, ElementType.CROCODILE);
+                    }
+                } else if (line.startsWith("MINE")) {
+                    int count = Integer.parseInt(line.split(" ")[1]);
+                    for (int i = 0; i < count; i++) {
+                        String[] parts = br.readLine().trim().split(" ");
+                        gameService.addElements(Integer.parseInt(parts[0]), 0, ElementType.MINE);
+                    }
+                } else {
+                    // Player count line
+                    int playerCount = Integer.parseInt(line.split(" ")[0]);
+                    for (int i = 0; i < playerCount; i++) {
+                        String[] parts = br.readLine().trim().split(" ");
+                        String name = parts[0];
+                        int startPos = Integer.parseInt(parts[1]);
+                        gameService.addPlayer(name, startPos);
+                    }
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        // Manual die override example (comment out for random):
+        // gameService.setManualDice(new int[]{6, 1, 6, 4, 4, 6, 5, 4, 1, 6});
 
         gameService.beginGame();
     }

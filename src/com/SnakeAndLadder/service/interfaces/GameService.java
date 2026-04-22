@@ -1,10 +1,11 @@
 package com.SnakeAndLadder.service.interfaces;
+
 import com.SnakeAndLadder.enums.ElementType;
 import com.SnakeAndLadder.strategy.interfaces.Strategy;
 
 public interface GameService {
 
-    Boolean addPlayers(Integer numOfPlayers);
+    Boolean addPlayer(String name, int startPosition);
 
     Boolean addBoardSize(Integer size);
 
@@ -16,4 +17,5 @@ public interface GameService {
 
     void addStrategy(Strategy strategy);
 
+    void setManualDice(int[] diceValues);
 }

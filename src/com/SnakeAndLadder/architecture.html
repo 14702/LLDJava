@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake & Ladder — Class Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Consolas, monospace; background: #0f172a; color: #e2e8f0; padding: 24px; }
+  h1 { text-align: center; font-size: 1.5rem; color: #38bdf8; margin-bottom: 4px; }
+  .sub { text-align: center; color: #94a3b8; font-size: 0.82rem; margin-bottom: 24px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* UML box */
+  .uml { background: #1e293b; border: 2px solid #334155; border-radius: 8px; width: 220px; cursor: pointer; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+  .uml:hover { border-color: #60a5fa; box-shadow: 0 4px 16px rgba(56,189,248,0.15); }
+  .uml.active { border-color: #facc15; box-shadow: 0 0 16px rgba(250,204,21,0.2); }
+  .uml.intf { border-style: dashed; }
+  .uml-h { padding: 8px 12px; text-align: center; border-bottom: 1px solid #334155; }
+  .uml-h .st { font-size: 0.65rem; color: #94a3b8; }
+  .uml-h .nm { font-weight: 700; font-size: 0.9rem; color: #f1f5f9; }
+  .uml-s { padding: 6px 12px; border-bottom: 1px solid #334155; font-size: 0.73rem; line-height: 1.55; }
+  .uml-s:last-child { border-bottom: none; }
+  .f { color: #86efac; } .m { color: #93c5fd; } .a { color: #fbbf24; margin-right: 3px; }
+
+  /* layout */
+  .diagram { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .row { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; }
+  .rel { display: flex; flex-direction: column; align-items: center; }
+  .rel .line { width: 2px; height: 14px; background: #475569; }
+  .rel .lbl { font-size: 0.65rem; color: #94a3b8; background: #0f172a; padding: 1px 6px; border-radius: 4px; }
+  .rel .arr { color: #64748b; font-size: 1.2rem; line-height: 1; }
+
+  /* detail */
+  .detail { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 18px 22px; margin-top: 20px; min-height: 80px; }
+  .detail h2 { color: #38bdf8; font-size: 1.05rem; margin-bottom: 4px; }
+  .detail .pk { color: #64748b; font-size: 0.72rem; margin-bottom: 8px; }
+  .detail p { color: #cbd5e1; font-size: 0.85rem; line-height: 1.65; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 16px; font-size: 0.65rem; margin-right: 4px; margin-top: 6px; }
+  .tag.strategy { background: #422006; color: #fbbf24; }
+  .tag.template { background: #3b0764; color: #d8b4fe; }
+  .tag.enum { background: #164e63; color: #67e8f9; }
+  .tag.model { background: #14532d; color: #86efac; }
+  .tag.service { background: #1e3a5f; color: #7dd3fc; }
+
+  /* flow */
+  .flow { margin-top: 22px; background: #1e293b; border-radius: 10px; padding: 18px 22px; border: 1px solid #334155; }
+  .flow h2 { color: #38bdf8; margin-bottom: 12px; font-size: 1.05rem; }
+  .steps { display: flex; align-items: flex-start; gap: 0; flex-wrap: wrap; justify-content: center; }
+  .step { display: flex; flex-direction: column; align-items: center; text-align: center; width: 130px; padding: 6px; }
+  .step .c { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; }
+  .step .n { font-weight: 700; color: #e2e8f0; font-size: 0.75rem; }
+  .step .d { font-size: 0.68rem; color: #94a3b8; line-height: 1.35; }
+  .sa { display: flex; align-items: center; padding-top: 12px; color: #475569; font-size: 1.3rem; }
+  .c1 .c { background: #1e3a5f; color: #7dd3fc; }
+  .c2 .c { background: #365314; color: #86efac; }
+  .c3 .c { background: #581c87; color: #d8b4fe; }
+  .c4 .c { background: #7c2d12; color: #fdba74; }
+  .c5 .c { background: #155e75; color: #67e8f9; }
+  .c6 .c { background: #92400e; color: #fbbf24; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Snake & Ladder — Class Diagram</h1>
+<p class="sub">Click any class to see details. Dashed = interface/abstract.</p>
+
+<div class="diagram">
+
+  <!-- Row 1: Enums -->
+  <div class="row">
+    <div class="uml" onclick="sel('etype')">
+      <div class="uml-h"><div class="st">&laquo;enum&raquo;</div><div class="nm">ElementType</div></div>
+      <div class="uml-s"><span class="f">SNAKE, LADDER, CROCODILE, MINE</span></div>
+    </div>
+    <div class="uml" onclick="sel('pstatus')">
+      <div class="uml-h"><div class="st">&laquo;enum&raquo;</div><div class="nm">PlayerStatus</div></div>
+      <div class="uml-s"><span class="f">WIN, LOSE, PENDING</span></div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">used by</div><div class="arr">&#9660;</div></div>
+
+  <!-- Row 2: Model layer -->
+  <div class="row">
+    <div class="uml" onclick="sel('player')">
+      <div class="uml-h"><div class="st">&laquo;class&raquo;</div><div class="nm">Player</div></div>
+      <div class="uml-s"><span class="a">-</span><span class="f">id, name, position</span><br><span class="a">-</span><span class="f">status: PlayerStatus</span><br><span class="a">-</span><span class="f">skipTurns: int</span></div>
+      <div class="uml-s"><span class="a">+</span><span class="m">getters / setters</span><br><span class="a">+</span><span class="m">toString()</span></div>
+    </div>
+    <div class="uml" onclick="sel('board')">
+      <div class="uml-h"><div class="st">&laquo;class&raquo;</div><div class="nm">Board</div></div>
+      <div class="uml-s"><span class="a">-</span><span class="f">cells: List&lt;Cell&gt;</span></div>
+      <div class="uml-s"><span class="a">+</span><span class="m">getCells()</span></div>
+    </div>
+    <div class="uml" onclick="sel('cell')">
+      <div class="uml-h"><div class="st">&laquo;class&raquo;</div><div class="nm">Cell</div></div>
+      <div class="uml-s"><span class="a">-</span><span class="f">move: Move</span></div>
+      <div class="uml-s"><span class="a">+</span><span class="m">setMove(start, end, type)</span><br><span class="a">+</span><span class="m">getMove()</span></div>
+    </div>
+    <div class="uml" onclick="sel('dice')">
+      <div class="uml-h"><div class="st">&laquo;class&raquo;</div><div class="nm">Dice</div></div>
+      <div class="uml-s"><span class="a">+</span><span class="m">rollDice(): int [1-6]</span></div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">Cell has-a Move</div><div class="arr">&#9660;</div></div>
+
+  <!-- Row 3: Move hierarchy -->
+  <div class="row">
+    <div class="uml intf" onclick="sel('move')">
+      <div class="uml-h"><div class="st">&laquo;abstract&raquo;</div><div class="nm">Move</div></div>
+      <div class="uml-s"><span class="a">#</span><span class="f">elementType: ElementType</span></div>
+      <div class="uml-s"><span class="a">+</span><span class="m">getPos(): Integer</span><br><span class="a">+</span><span class="m">setMove(start, end): Boolean</span><br><span class="a">+</span><span class="m">getElementType()</span></div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">extends</div><div class="arr">&#9660;</div></div>
+
+  <!-- Row 4: Concrete Moves -->
+  <div class="row">
+    <div class="uml" onclick="sel('snake')">
+      <div class="uml-h"><div class="st">&laquo;extends Move&raquo;</div><div class="nm">SnakeMove</div></div>
+      <div class="uml-s"><span class="a">-</span><span class="f">end: Integer</span></div>
+      <div class="uml-s"><span class="m">end &lt; start</span></div>
+    </div>
+    <div class="uml" onclick="sel('ladder')">
+      <div class="uml-h"><div class="st">&laquo;extends Move&raquo;</div><div class="nm">LadderMove</div></div>
+      <div class="uml-s"><span class="a">-</span><span class="f">start, end: Integer</span></div>
+      <div class="uml-s"><span class="m">end &gt; start</span></div>
+    </div>
+    <div class="uml" onclick="sel('croc')">
+      <div class="uml-h"><div class="st">&laquo;extends Move&raquo;</div><div class="nm">CrocodileMove</div></div>
+      <div class="uml-s"><span class="a">-</span><span class="f">end: Integer</span></div>
+      <div class="uml-s"><span class="m">end = max(start-5, 0)</span></div>
+    </div>
+    <div class="uml" onclick="sel('mine')">
+      <div class="uml-h"><div class="st">&laquo;extends Move&raquo;</div><div class="nm">MineMove</div></div>
+      <div class="uml-s"><span class="a">-</span><span class="f">pos: Integer</span></div>
+      <div class="uml-s"><span class="m">skip 2 turns</span></div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">used by service &amp; strategy</div><div class="arr">&#9660;</div></div>
+
+  <!-- Row 5: Strategy -->
+  <div class="row">
+    <div class="uml intf" onclick="sel('strategy')">
+      <div class="uml-h"><div class="st">&laquo;interface&raquo;</div><div class="nm">Strategy</div></div>
+      <div class="uml-s"><span class="a">+</span><span class="m">getValue(numDice): Integer</span></div>
+    </div>
+    <div class="uml" onclick="sel('sum')">
+      <div class="uml-h"><div class="st">&laquo;implements Strategy&raquo;</div><div class="nm">SumStrategy</div></div>
+      <div class="uml-s"><span class="a">-</span><span class="f">dice: Dice</span></div>
+      <div class="uml-s"><span class="m">returns sum of N rolls</span></div>
+    </div>
+    <div class="uml" onclick="sel('max')">
+      <div class="uml-h"><div class="st">&laquo;implements Strategy&raquo;</div><div class="nm">MaxStrategy</div></div>
+      <div class="uml-s"><span class="m">returns max of N rolls</span></div>
+    </div>
+    <div class="uml" onclick="sel('min')">
+      <div class="uml-h"><div class="st">&laquo;implements Strategy&raquo;</div><div class="nm">MinStrategy</div></div>
+      <div class="uml-s"><span class="m">returns min of N rolls</span></div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">injected into</div><div class="arr">&#9660;</div></div>
+
+  <!-- Row 6: Service layer -->
+  <div class="row">
+    <div class="uml intf" onclick="sel('gs')">
+      <div class="uml-h"><div class="st">&laquo;interface&raquo;</div><div class="nm">GameService</div></div>
+      <div class="uml-s">
+        <span class="a">+</span><span class="m">addPlayer(name, startPos)</span><br>
+        <span class="a">+</span><span class="m">addBoardSize(size)</span><br>
+        <span class="a">+</span><span class="m">addElements(start, end, type)</span><br>
+        <span class="a">+</span><span class="m">setManualDice(int[])</span><br>
+        <span class="a">+</span><span class="m">beginGame()</span>
+      </div>
+    </div>
+    <div class="uml" onclick="sel('gsi')">
+      <div class="uml-h"><div class="st">&laquo;implements GameService&raquo;</div><div class="nm">GameServiceImpl</div></div>
+      <div class="uml-s">
+        <span class="a">-</span><span class="f">board: Board</span><br>
+        <span class="a">-</span><span class="f">players: List&lt;Player&gt;</span><br>
+        <span class="a">-</span><span class="f">strategy: Strategy</span><br>
+        <span class="a">-</span><span class="f">manualDice: int[]</span>
+      </div>
+      <div class="uml-s">
+        <span class="a">-</span><span class="m">rollDice()</span><br>
+        <span class="a">+</span><span class="m">beginGame() — game loop</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">driven by</div><div class="arr">&#9660;</div></div>
+
+  <!-- Row 7: Main -->
+  <div class="row">
+    <div class="uml" onclick="sel('main')">
+      <div class="uml-h"><div class="st">&laquo;entry point&raquo;</div><div class="nm">Main</div></div>
+      <div class="uml-s"><span class="m">reads input.txt → configures GameService → beginGame()</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail panel -->
+<div class="detail" id="detail">
+  <h2>Click any class above</h2>
+  <p>See its role, relationships, and design pattern used.</p>
+</div>
+
+<!-- Sequential flow -->
+<div class="flow">
+  <h2>Game Flow (per turn)</h2>
+  <div class="steps">
+    <div class="step c1"><div class="c">1</div><div class="n">Roll Dice</div><div class="d">Manual override or Strategy.getValue()</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c2"><div class="c">2</div><div class="n">Check Skip</div><div class="d">Mine: skipTurns &gt; 0? Decrement &amp; skip</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c3"><div class="c">3</div><div class="n">Move Player</div><div class="d">newPos = pos + dice. If &gt; boardSize, stay</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c4"><div class="c">4</div><div class="n">Check Cell</div><div class="d">Snake/Ladder/Croc/Mine? Apply Move.getPos()</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c5"><div class="c">5</div><div class="n">Chain</div><div class="d">Destination has another element? Follow it</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c6"><div class="c">6</div><div class="n">Win?</div><div class="d">pos == 100? Mark WIN. Last player = LOSE</div></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const info = {
+  etype: { t: 'ElementType', pk: 'enums', d: 'Enum defining board element types: <b>SNAKE</b>, <b>LADDER</b>, <b>CROCODILE</b>, <b>MINE</b>. Used by Cell.setMove() to create the correct Move subclass. Extensible — add new types here and a corresponding Move subclass.', tags: ['enum'] },
+  pstatus: { t: 'PlayerStatus', pk: 'enums', d: 'Tracks player state: <b>PENDING</b> (playing), <b>WIN</b> (reached 100), <b>LOSE</b> (last remaining). Set by GameServiceImpl during the game loop.', tags: ['enum'] },
+  player: { t: 'Player', pk: 'model', d: 'Holds player state: <b>name</b>, <b>position</b>, <b>status</b>, <b>skipTurns</b> (for Mine). Supports custom starting position. toString() shows readable status for final output.', tags: ['model'] },
+  board: { t: 'Board', pk: 'model', d: 'Container for a List of Cells indexed by position (0 to boardSize). Created by GameServiceImpl.addBoardSize(). Simple wrapper — keeps board data separate from game logic.', tags: ['model'] },
+  cell: { t: 'Cell', pk: 'model', d: 'A single board position. May hold a <b>Move</b> (snake, ladder, crocodile, or mine). <b>setMove()</b> acts as a factory — creates the right Move subclass based on ElementType. This is where the <b>Factory pattern</b> lives.', tags: ['model'] },
+  dice: { t: 'Dice', pk: 'model', d: 'Simple random number generator: <b>rollDice()</b> returns 1–6. Injected into Strategy implementations. Separated for testability.', tags: ['model'] },
+  move: { t: 'Move (Abstract)', pk: 'model', d: 'Base class for all board elements. <b>Template Method pattern</b> — defines the contract (getPos, setMove, getElementType) and each subclass implements its own movement logic. New element types just extend this.', tags: ['template'] },
+  snake: { t: 'SnakeMove', pk: 'model', d: 'Moves player DOWN. Validates <b>end &lt; start</b> (tail must be below head). getPos() returns the tail position. Rejected if end &gt;= start.', tags: ['model'] },
+  ladder: { t: 'LadderMove', pk: 'model', d: 'Moves player UP. Validates <b>end &gt; start</b> (top must be above bottom). getPos() returns the top position. Rejected if end &lt;= start.', tags: ['model'] },
+  croc: { t: 'CrocodileMove', pk: 'model', d: 'Moves player exactly <b>5 steps back</b>. Clamps to 0 if near start (Math.max(start-5, 0)). No end parameter needed — always computed from position.', tags: ['model'] },
+  mine: { t: 'MineMove', pk: 'model', d: 'Holds player at current position and sets <b>skipTurns = 2</b>. Player stays on mine cell but skips their next 2 turns. getPos() returns same position.', tags: ['model'] },
+  strategy: { t: 'Strategy (Interface)', pk: 'strategy.interfaces', d: '<b>Strategy pattern.</b> Defines getValue(numDice) — how dice rolls are combined. Decouples dice logic from game logic. Swap strategies without touching GameServiceImpl.', tags: ['strategy'] },
+  sum: { t: 'SumStrategy', pk: 'strategy.impl', d: 'Returns <b>sum</b> of N dice rolls. Default strategy. E.g., 2 dice rolling 3 and 5 = 8.', tags: ['strategy'] },
+  max: { t: 'MaxStrategy', pk: 'strategy.impl', d: 'Returns <b>maximum</b> value among N dice rolls. E.g., 2 dice rolling 3 and 5 = 5.', tags: ['strategy'] },
+  min: { t: 'MinStrategy', pk: 'strategy.impl', d: 'Returns <b>minimum</b> value among N dice rolls. E.g., 2 dice rolling 3 and 5 = 3.', tags: ['strategy'] },
+  gs: { t: 'GameService (Interface)', pk: 'service.interfaces', d: 'Contract for the game engine. Defines: addPlayer, addBoardSize, addElements, setManualDice, beginGame. Code depends on this interface, not the implementation. <b>Dependency Inversion.</b>', tags: ['service'] },
+  gsi: { t: 'GameServiceImpl', pk: 'service.impl', d: 'The game engine. <b>beginGame()</b> runs the loop: round-robin queue → roll dice (manual or strategy) → check mine skip → move → apply snake/ladder/croc/mine chains → check win. Uses Queue&lt;Player&gt; for turn order. Handles all edge cases: overshoot, chained elements, TTL skip turns.', tags: ['service'] },
+  main: { t: 'Main', pk: 'com.SnakeAndLadder', d: 'Entry point. Reads <b>input.txt</b> (snakes, ladders, crocodiles, mines, players with names + start positions). Configures GameService and calls beginGame(). Manual dice override available via setManualDice().', tags: ['service'] }
+};
+
+function sel(id) {
+  document.querySelectorAll('.uml').forEach(u => u.classList.remove('active'));
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  const d = info[id]; if (!d) return;
+  const tags = d.tags.map(t => '<span class="tag ' + t + '">' + t + '</span>').join('');
+  document.getElementById('detail').innerHTML =
+    '<h2>' + d.t + '</h2><div class="pk">' + d.pk + '</div><p>' + d.d + '</p><div style="margin-top:8px">' + tags + '</div>';
+}
+</script>
+</body>
+</html>
