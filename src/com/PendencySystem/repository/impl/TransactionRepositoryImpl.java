@@ -5,55 +5,36 @@ import com.PendencySystem.exceptions.NotFoundException;
 import com.PendencySystem.model.Transaction;
 import com.PendencySystem.repository.interfaces.TransactionRepository;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TransactionRepositoryImpl implements TransactionRepository {
 
-    private static volatile TransactionRepositoryImpl instance;
-    private static Map<Integer, Transaction> transactions;
-
-    private TransactionRepositoryImpl(){
-        transactions = new HashMap<>();
-    }
-
-    public static TransactionRepositoryImpl getInstance(){
-        if(instance == null){
-            synchronized (TransactionRepositoryImpl.class){
-                if(instance == null){
-                    instance = new TransactionRepositoryImpl();
-                }
-            }
-        }
-        return instance;
-    }
+    private final ConcurrentHashMap<Integer, Transaction> transactions = new ConcurrentHashMap<>();
 
     @Override
-    public Transaction create(Integer transactionId, List<String> allTags){
-        if(transactions.containsKey(transactionId)){
-            throw new DuplicateEntityException("Transaction already exists");
-        }
-        System.out.println("Start tracking the Tags for Id "+ transactionId + "  +++++++++++++++++++++++++++++++++++");
+    public void create(Integer transactionId, List<String> allTags) {
         Transaction transaction = new Transaction(transactionId, allTags);
-        transactions.put(transaction.getId(), transaction);
-        return transaction;
+        if (transactions.putIfAbsent(transactionId, transaction) != null) {
+            throw new DuplicateEntityException("Entity already tracked: " + transactionId);
+        }
     }
 
     @Override
-    public Transaction get(Integer id){
-        if(!transactions.containsKey(id)){
-            throw new NotFoundException("Transaction not found");
+    public Transaction get(Integer id) {
+        Transaction txn = transactions.get(id);
+        if (txn == null) {
+            throw new NotFoundException("Entity not found: " + id);
         }
-        return transactions.get(id);
+        return txn;
     }
 
     @Override
-    public void remove(Integer id){
-        if(!transactions.containsKey(id)){
-            throw new NotFoundException("Transaction not found");
+    public Transaction remove(Integer id) {
+        Transaction txn = transactions.remove(id);
+        if (txn == null) {
+            throw new NotFoundException("Entity not found: " + id);
         }
-        System.out.println("Stop tracking the Tags for Id "+ id + "   -----------------------------------");
-        transactions.remove(id);
+        return txn;
     }
 }

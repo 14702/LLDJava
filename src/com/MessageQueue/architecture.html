@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message Queue - Class Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Consolas, monospace; background: #0f172a; color: #e2e8f0; padding: 24px; }
+  h1 { text-align: center; font-size: 1.6rem; color: #38bdf8; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #94a3b8; margin-bottom: 28px; font-size: 0.85rem; }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* ── UML Class Box ── */
+  .uml-box {
+    background: #1e293b; border: 2px solid #334155; border-radius: 8px;
+    width: 260px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+  .uml-box:hover { border-color: #60a5fa; box-shadow: 0 4px 20px rgba(56,189,248,0.15); }
+  .uml-box.active { border-color: #facc15; box-shadow: 0 0 20px rgba(250,204,21,0.2); }
+  .uml-box.intf { border-style: dashed; }
+
+  .uml-header {
+    padding: 10px 14px; text-align: center; border-bottom: 1px solid #334155;
+  }
+  .uml-header .stereotype { font-size: 0.7rem; color: #94a3b8; }
+  .uml-header .name { font-weight: 700; font-size: 0.95rem; color: #f1f5f9; }
+  .uml-header .pkg { font-size: 0.65rem; color: #64748b; margin-top: 2px; }
+
+  .uml-section { padding: 8px 14px; border-bottom: 1px solid #334155; font-size: 0.78rem; line-height: 1.6; }
+  .uml-section:last-child { border-bottom: none; }
+  .uml-section .field { color: #86efac; }
+  .uml-section .method { color: #93c5fd; }
+  .uml-section .access { color: #fbbf24; margin-right: 4px; }
+
+  /* ── Layout: 4-row grid ── */
+  .diagram { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+  .row { display: flex; justify-content: center; gap: 40px; align-items: flex-start; position: relative; }
+
+  /* ── Relationship Arrows ── */
+  .rel-group { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 0; }
+  .arrow-down { font-size: 1.4rem; color: #64748b; line-height: 1; }
+  .arrow-label { font-size: 0.68rem; color: #94a3b8; padding: 1px 8px; background: #0f172a; border-radius: 4px; white-space: nowrap; }
+  .arrow-line { width: 2px; height: 18px; background: #475569; }
+
+  .arrow-connector {
+    display: flex; align-items: center; gap: 0; color: #64748b; font-size: 0.75rem;
+  }
+  .arrow-h-line { width: 30px; height: 2px; background: #475569; }
+  .arrow-right { font-size: 1.2rem; line-height: 1; }
+
+  /* ── Detail Panel ── */
+  .detail {
+    background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+    padding: 20px 24px; margin-top: 24px; min-height: 100px;
+  }
+  .detail h2 { color: #38bdf8; font-size: 1.1rem; margin-bottom: 6px; }
+  .detail p { color: #cbd5e1; font-size: 0.88rem; line-height: 1.7; }
+  .detail .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; margin-right: 6px; margin-top: 8px; }
+  .tag.strategy { background: #422006; color: #fbbf24; }
+  .tag.observer { background: #3b0764; color: #d8b4fe; }
+  .tag.concurrency { background: #14532d; color: #86efac; }
+  .tag.model { background: #164e63; color: #67e8f9; }
+  .tag.solid { background: #1e3a5f; color: #7dd3fc; }
+
+  /* ── Flow Section ── */
+  .flow { margin-top: 28px; background: #1e293b; border-radius: 10px; padding: 20px 24px; border: 1px solid #334155; }
+  .flow h2 { color: #38bdf8; margin-bottom: 14px; font-size: 1.1rem; }
+  .flow-steps { display: flex; align-items: flex-start; gap: 0; flex-wrap: wrap; justify-content: center; }
+  .flow-step {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    width: 140px; padding: 8px;
+  }
+  .flow-step .circle {
+    width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;
+  }
+  .flow-step .desc { font-size: 0.72rem; color: #94a3b8; line-height: 1.4; }
+  .flow-step .cls { font-weight: 700; color: #e2e8f0; font-size: 0.78rem; }
+  .flow-arrow { display: flex; align-items: center; padding-top: 14px; color: #475569; font-size: 1.5rem; }
+
+  .c-prod .circle { background: #1e3a5f; color: #7dd3fc; }
+  .c-queue .circle { background: #365314; color: #86efac; }
+  .c-broker .circle { background: #581c87; color: #d8b4fe; }
+  .c-filter .circle { background: #155e75; color: #67e8f9; }
+  .c-consumer .circle { background: #7c2d12; color: #fdba74; }
+  .c-callback .circle { background: #92400e; color: #fbbf24; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Message Queue — Class Diagram</h1>
+  <p class="subtitle">Click any class to see details below. Dashed border = interface.</p>
+
+  <div class="diagram">
+
+    <!-- Row 1: Model -->
+    <div class="row">
+      <div class="uml-box" onclick="select('message')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;model&raquo;</div>
+          <div class="name">Message</div>
+          <div class="pkg">com.MessageQueue.model</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">-</span><span class="field">id: String</span><br>
+          <span class="access">-</span><span class="field">payload: Map&lt;String, Object&gt;</span><br>
+          <span class="access">-</span><span class="field">createdAt: long</span><br>
+          <span class="access">-</span><span class="field">ttlMs: long</span>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">isExpired(): boolean</span><br>
+          <span class="access">+</span><span class="method">getId(): String</span><br>
+          <span class="access">+</span><span class="method">getPayload(): Map</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow: used by -->
+    <div class="rel-group">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">used by all</div>
+      <div class="arrow-down">&#9660;</div>
+    </div>
+
+    <!-- Row 2: Interfaces -->
+    <div class="row">
+      <div class="uml-box intf" onclick="select('queue')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;interface&raquo;</div>
+          <div class="name">Queue</div>
+          <div class="pkg">queue.interfaces</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">put(Message): void</span><br>
+          <span class="access">+</span><span class="method">offer(Message): boolean</span><br>
+          <span class="access">+</span><span class="method">take(): Message</span><br>
+          <span class="access">+</span><span class="method">size(): int</span><br>
+          <span class="access">+</span><span class="method">capacity(): int</span>
+        </div>
+      </div>
+
+      <div class="uml-box intf" onclick="select('broker')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;interface&raquo;</div>
+          <div class="name">Broker</div>
+          <div class="pkg">broker.interfaces</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">registerConsumer(Consumer)</span><br>
+          <span class="access">+</span><span class="method">unregisterConsumer(String)</span><br>
+          <span class="access">+</span><span class="method">publish(Message)</span><br>
+          <span class="access">+</span><span class="method">tryPublish(Message): boolean</span><br>
+          <span class="access">+</span><span class="method">start() / stop()</span>
+        </div>
+      </div>
+
+      <div class="uml-box intf" onclick="select('filter')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;interface / Strategy&raquo;</div>
+          <div class="name">MessageFilter</div>
+          <div class="pkg">filter</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">matches(Message): boolean</span>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">acceptAll(): MessageFilter</span><br>
+          <span class="access">+</span><span class="method">keyEquals(key, val): MessageFilter</span><br>
+          <span class="access">+</span><span class="method">keyContains(key, sub): MessageFilter</span>
+        </div>
+      </div>
+
+      <div class="uml-box intf" onclick="select('callback')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;@FunctionalInterface&raquo;</div>
+          <div class="name">MessageCallback</div>
+          <div class="pkg">consumer</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">onMessage(Message): void</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow: implements / uses -->
+    <div class="rel-group">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">implements &#9650; &nbsp;&nbsp;|&nbsp;&nbsp; uses &#9660;</div>
+      <div class="arrow-down">&#9660;</div>
+    </div>
+
+    <!-- Row 3: Implementations -->
+    <div class="row">
+      <div class="uml-box" onclick="select('boundedqueue')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;implements Queue&raquo;</div>
+          <div class="name">BoundedQueue</div>
+          <div class="pkg">queue.impl</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">-</span><span class="field">buffer: Message[]</span><br>
+          <span class="access">-</span><span class="field">head, tail, size: int</span><br>
+          <span class="access">-</span><span class="field">lock: ReentrantLock</span><br>
+          <span class="access">-</span><span class="field">notFull: Condition</span><br>
+          <span class="access">-</span><span class="field">notEmpty: Condition</span>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">put(msg) — blocks if full</span><br>
+          <span class="access">+</span><span class="method">offer(msg) — returns false if full</span><br>
+          <span class="access">+</span><span class="method">take() — blocks if empty</span>
+        </div>
+      </div>
+
+      <div class="uml-box" onclick="select('messagebroker')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;implements Broker&raquo;</div>
+          <div class="name">MessageBroker</div>
+          <div class="pkg">broker.impl</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">-</span><span class="field">queue: Queue</span><br>
+          <span class="access">-</span><span class="field">consumers: ConcurrentHashMap</span><br>
+          <span class="access">-</span><span class="field">dispatchExecutor: ExecutorService</span><br>
+          <span class="access">-</span><span class="field">running: AtomicBoolean</span><br>
+          <span class="access">-</span><span class="field">maxRetries: int</span>
+        </div>
+        <div class="uml-section">
+          <span class="access">-</span><span class="method">dispatchLoop()</span><br>
+          <span class="access">-</span><span class="method">dispatch(msg)</span><br>
+          <span class="access">-</span><span class="method">waitForDependencies()</span><br>
+          <span class="access">-</span><span class="method">invokeWithRetry()</span>
+        </div>
+      </div>
+
+      <div class="uml-box" onclick="select('consumer')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;class&raquo;</div>
+          <div class="name">Consumer</div>
+          <div class="pkg">consumer</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">-</span><span class="field">id: String</span><br>
+          <span class="access">-</span><span class="field">callback: MessageCallback</span><br>
+          <span class="access">-</span><span class="field">filter: MessageFilter</span><br>
+          <span class="access">-</span><span class="field">dependencies: List&lt;String&gt;</span>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">getId()</span><br>
+          <span class="access">+</span><span class="method">getCallback()</span><br>
+          <span class="access">+</span><span class="method">getFilter()</span><br>
+          <span class="access">+</span><span class="method">getDependencies()</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow: uses -->
+    <div class="rel-group">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">publishes to Broker</div>
+      <div class="arrow-down">&#9650;</div>
+    </div>
+
+    <!-- Row 4: Producer -->
+    <div class="row">
+      <div class="uml-box" onclick="select('producer')">
+        <div class="uml-header">
+          <div class="stereotype">&laquo;Runnable&raquo;</div>
+          <div class="name">Producer</div>
+          <div class="pkg">producer</div>
+        </div>
+        <div class="uml-section">
+          <span class="access">-</span><span class="field">id: String</span><br>
+          <span class="access">-</span><span class="field">broker: Broker</span><br>
+          <span class="access">-</span><span class="field">messages: Map[]</span><br>
+          <span class="access">-</span><span class="field">ttlMs: long</span>
+        </div>
+        <div class="uml-section">
+          <span class="access">+</span><span class="method">run()</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Detail Panel -->
+  <div class="detail" id="detail">
+    <h2>Click any class above</h2>
+    <p>See its role, relationships, design patterns, and concurrency details.</p>
+  </div>
+
+  <!-- Sequential Flow -->
+  <div class="flow">
+    <h2>Sequential Message Flow</h2>
+    <div class="flow-steps">
+      <div class="flow-step c-prod">
+        <div class="circle">1</div>
+        <div class="cls">Producer</div>
+        <div class="desc">Creates Message with JSON payload + TTL</div>
+      </div>
+      <div class="flow-arrow">&#8594;</div>
+      <div class="flow-step c-broker">
+        <div class="circle">2</div>
+        <div class="cls">Broker</div>
+        <div class="desc">publish() puts msg into Queue</div>
+      </div>
+      <div class="flow-arrow">&#8594;</div>
+      <div class="flow-step c-queue">
+        <div class="circle">3</div>
+        <div class="cls">BoundedQueue</div>
+        <div class="desc">Stores in circular buffer (lock-guarded)</div>
+      </div>
+      <div class="flow-arrow">&#8594;</div>
+      <div class="flow-step c-broker">
+        <div class="circle">4</div>
+        <div class="cls">Dispatch</div>
+        <div class="desc">take() → skip if expired → fan out to consumers</div>
+      </div>
+      <div class="flow-arrow">&#8594;</div>
+      <div class="flow-step c-filter">
+        <div class="circle">5</div>
+        <div class="cls">Filter</div>
+        <div class="desc">Check dependencies (latch) then matches()</div>
+      </div>
+      <div class="flow-arrow">&#8594;</div>
+      <div class="flow-step c-callback">
+        <div class="circle">6</div>
+        <div class="cls">Callback</div>
+        <div class="desc">onMessage() with retry. Latch countdown in finally.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const details = {
+  message: {
+    title: 'Message (Model)',
+    text: 'Immutable value object carrying the JSON payload. <b>payload</b> is Map&lt;String, Object&gt; (JSON). <b>ttlMs</b> controls expiry — <b>isExpired()</b> compares elapsed time. Used by every other class as the data unit flowing through the system.',
+    tags: ['model']
+  },
+  queue: {
+    title: 'Queue (Interface)',
+    text: 'Contract for the queue. <b>put()</b> blocks when full, <b>offer()</b> returns false. <b>take()</b> blocks when empty. MessageBroker depends on this interface, not BoundedQueue — so you can swap in a PriorityQueue or PersistentQueue without changing broker code. <b>Dependency Inversion Principle.</b>',
+    tags: ['solid']
+  },
+  broker: {
+    title: 'Broker (Interface)',
+    text: 'Contract for the message broker. Producer depends on this, not MessageBroker. Defines publish, consumer registration, and lifecycle (start/stop). Enables swapping broker implementations (e.g., a distributed broker) without touching producers or consumers.',
+    tags: ['solid']
+  },
+  filter: {
+    title: 'MessageFilter (Strategy Pattern)',
+    text: '<b>Strategy pattern</b> — each consumer provides a filter that decides which messages it receives. Built-in static factories: <b>acceptAll()</b>, <b>keyEquals()</b>, <b>keyContains()</b>. Add new filter types without modifying any existing code — just create a new lambda or implementation. <b>Open/Closed Principle.</b>',
+    tags: ['strategy', 'solid']
+  },
+  callback: {
+    title: 'MessageCallback (Observer Pattern)',
+    text: '<b>Observer pattern</b> — consumers register this callback, and the broker invokes it when a matching message arrives. @FunctionalInterface so consumers use simple lambdas. Can throw Exception — broker wraps it with retry logic.',
+    tags: ['observer']
+  },
+  boundedqueue: {
+    title: 'BoundedQueue (Queue Implementation)',
+    text: 'Circular array buffer — <b>no built-in Java Queue used</b>. Thread safety via <b>ReentrantLock</b> with two <b>Conditions</b>: notFull (producer waits) and notEmpty (consumer waits). <b>put()</b> blocks producers when buffer is full. <b>take()</b> blocks the dispatch thread when empty. Configurable capacity.',
+    tags: ['concurrency']
+  },
+  messagebroker: {
+    title: 'MessageBroker (Broker Implementation)',
+    text: 'The engine. <b>ConcurrentHashMap</b> for consumer registry. <b>Dispatch thread</b> runs a loop: take from queue → skip expired (TTL) → for each consumer: wait on dependency latches (CountDownLatch) → apply filter → invoke callback with retry. Each consumer runs on <b>CachedThreadPool</b>. Latch countdown happens in <b>finally</b> to prevent deadlocks.',
+    tags: ['concurrency', 'observer']
+  },
+  consumer: {
+    title: 'Consumer (Data Holder)',
+    text: 'POJO holding: <b>id</b>, <b>MessageCallback</b> (what to do), <b>MessageFilter</b> (which messages), <b>dependencies</b> (List of consumer IDs that must finish first, e.g., C depends on [A, B]). No varying behavior, so no interface needed — keeps it simple.',
+    tags: ['model']
+  },
+  producer: {
+    title: 'Producer (Runnable)',
+    text: 'Implements Runnable — run multiple producers on separate threads. Depends on <b>Broker interface</b> (not MessageBroker). Iterates over payloads, wraps each in a Message with auto-generated ID and optional TTL, calls <b>broker.publish()</b>. InterruptedException breaks the loop cleanly.',
+    tags: ['concurrency', 'solid']
+  }
+};
+
+function select(id) {
+  document.querySelectorAll('.uml-box').forEach(b => b.classList.remove('active'));
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+
+  const d = details[id];
+  if (!d) return;
+  const tagsHtml = d.tags.map(t => `<span class="tag ${t}">${t}</span>`).join('');
+  document.getElementById('detail').innerHTML =
+    `<h2>${d.title}</h2><p>${d.text}</p><div style="margin-top:10px">${tagsHtml}</div>`;
+}
+</script>
+</body>
+</html>

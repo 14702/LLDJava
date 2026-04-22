@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pendency System - Interactive Architecture</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+
+/* TABS */
+.tabs{display:flex;justify-content:center;gap:4px;padding:16px 16px 0;background:#1e293b;position:sticky;top:0;z-index:100}
+.tab{padding:10px 24px;border-radius:8px 8px 0 0;cursor:pointer;font-size:13px;font-weight:600;
+  background:#334155;color:#94a3b8;transition:.2s;border:none}
+.tab:hover{background:#475569;color:#e2e8f0}
+.tab.active{background:#0f172a;color:#38bdf8}
+.panel{display:none;padding:32px;max-width:1200px;margin:0 auto}
+.panel.active{display:block}
+
+/* SVG DIAGRAM */
+#diagramSvg{width:100%;height:560px;display:block;margin:0 auto}
+.node{cursor:pointer;transition:filter .2s}
+.node:hover{filter:brightness(1.2) drop-shadow(0 0 8px rgba(56,189,248,.5))}
+.node.highlight rect,.node.highlight ellipse{stroke:#38bdf8;stroke-width:3;filter:drop-shadow(0 0 12px rgba(56,189,248,.6))}
+.node text{pointer-events:none}
+.edge{stroke:#475569;stroke-width:1.5;fill:none;marker-end:url(#arrowhead)}
+.edge.active{stroke:#38bdf8;stroke-width:2.5;transition:stroke .3s}
+
+/* DETAIL PANEL */
+#detailPanel{position:fixed;right:-420px;top:60px;width:400px;max-height:calc(100vh - 80px);
+  background:#1e293b;border-left:3px solid #38bdf8;border-radius:12px 0 0 12px;padding:24px;
+  overflow-y:auto;transition:right .35s ease;z-index:200;box-shadow:-4px 0 20px rgba(0,0,0,.4)}
+#detailPanel.open{right:0}
+#detailPanel h3{color:#38bdf8;font-size:18px;margin-bottom:4px}
+#detailPanel .pkg{color:#64748b;font-size:11px;margin-bottom:12px}
+#detailPanel p{font-size:13px;line-height:1.7;color:#cbd5e1;margin-bottom:8px}
+#detailPanel ul{font-size:13px;line-height:1.8;color:#cbd5e1;padding-left:18px;margin-bottom:8px}
+#detailPanel code{background:#334155;padding:1px 6px;border-radius:4px;font-size:12px;color:#7dd3fc}
+#detailPanel .close-btn{position:absolute;top:12px;right:16px;background:none;border:none;
+  color:#64748b;font-size:20px;cursor:pointer}
+#detailPanel .close-btn:hover{color:#f43f5e}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;color:#fff;font-weight:700;margin-right:4px}
+.badge-dp{background:#6366f1}
+.badge-ts{background:#0891b2}
+.badge-pat{background:#c026d3}
+
+/* FLOW SIMULATOR */
+.sim-controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+.sim-btn{padding:10px 20px;border-radius:8px;border:2px solid #334155;background:#1e293b;
+  color:#e2e8f0;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.sim-btn:hover{border-color:#38bdf8;background:#334155}
+.sim-btn.active-sim{border-color:#38bdf8;background:#0c4a6e;color:#38bdf8}
+.sim-btn:disabled{opacity:.4;cursor:not-allowed}
+
+#flowSvg{width:100%;height:400px;display:block;margin:0 auto 20px}
+.flow-node rect{rx:10;ry:10}
+.flow-node text{fill:#e2e8f0;font-size:12px;font-weight:600;text-anchor:middle;pointer-events:none}
+.flow-edge{stroke:#334155;stroke-width:2;fill:none;marker-end:url(#flowArrow)}
+.flow-edge.lit{stroke:#22c55e;stroke-width:2.5;transition:stroke .4s}
+.flow-node.lit rect{stroke:#22c55e;stroke-width:3;filter:drop-shadow(0 0 10px rgba(34,197,94,.5))}
+.flow-node.lit-err rect{stroke:#f43f5e;stroke-width:3;filter:drop-shadow(0 0 10px rgba(244,63,94,.5))}
+
+#flowLog{max-width:800px;margin:0 auto;background:#1e293b;border-radius:10px;padding:16px 20px;
+  font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;line-height:1.8;
+  max-height:280px;overflow-y:auto;color:#94a3b8}
+#flowLog .log-line{opacity:0;animation:fadeIn .4s forwards}
+.log-success{color:#22c55e}.log-fail{color:#f43f5e}.log-info{color:#38bdf8}.log-warn{color:#eab308}
+@keyframes fadeIn{to{opacity:1}}
+
+/* TRIE VISUALIZER */
+#trieContainer{max-width:900px;margin:0 auto}
+.trie-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+.trie-btn{padding:8px 16px;border-radius:6px;border:1px solid #334155;background:#1e293b;
+  color:#e2e8f0;font-size:12px;cursor:pointer;transition:.2s}
+.trie-btn:hover{border-color:#38bdf8}
+.trie-btn.active{border-color:#22c55e;background:#064e3b;color:#22c55e}
+#trieSvg{width:100%;display:block;margin:0 auto 16px;overflow:visible}
+.trie-node circle{transition:fill .3s,stroke .3s}
+.trie-node text{fill:#e2e8f0;font-size:11px;font-weight:600;text-anchor:middle;pointer-events:none}
+.trie-edge{stroke:#475569;stroke-width:1.5;fill:none}
+.trie-count{fill:#fbbf24;font-size:10px;font-weight:700;text-anchor:middle}
+#trieLog{max-width:800px;margin:0 auto;background:#1e293b;border-radius:10px;padding:12px 16px;
+  font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;line-height:1.6;
+  max-height:140px;overflow-y:auto;color:#94a3b8}
+
+/* STEP-THROUGH */
+.step-bar{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:24px;flex-wrap:wrap}
+.step-dot{width:32px;height:32px;border-radius:50%;border:2px solid #334155;display:flex;
+  align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#64748b;
+  transition:.3s;cursor:pointer}
+.step-dot.done{background:#22c55e;border-color:#22c55e;color:#fff}
+.step-dot.current{background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;transform:scale(1.15)}
+.step-connector{width:20px;height:2px;background:#334155}
+.step-connector.done{background:#22c55e}
+#stepContent{max-width:800px;margin:0 auto;background:#1e293b;border-radius:12px;padding:24px 28px;min-height:120px}
+#stepContent h3{color:#38bdf8;font-size:16px;margin-bottom:8px}
+#stepContent p{font-size:14px;line-height:1.7;color:#cbd5e1}
+#stepContent code{background:#334155;padding:1px 6px;border-radius:4px;font-size:12px;color:#7dd3fc}
+#stepContent .hc-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#stepContent .hc{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
+.step-nav{display:flex;gap:12px;justify-content:center;margin-top:20px}
+.step-nav button{padding:8px 24px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer}
+.step-nav .prev{background:#334155;color:#e2e8f0}.step-nav .next{background:#2563eb;color:#fff}
+.step-nav button:disabled{opacity:.3;cursor:not-allowed}
+
+/* PATTERNS TABLE */
+.patterns{max-width:900px;margin:0 auto}
+.patterns table{width:100%;border-collapse:collapse;font-size:13px}
+.patterns th{text-align:left;padding:10px;border-bottom:2px solid #334155;color:#64748b}
+.patterns td{padding:10px;border-bottom:1px solid #1e293b;color:#cbd5e1}
+.patterns tr:hover{background:#1e293b}
+</style>
+</head>
+<body>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('diagram')">Class Diagram</button>
+  <button class="tab" onclick="switchTab('flow')">Flow Simulator</button>
+  <button class="tab" onclick="switchTab('trie')">Live Trie Visualizer</button>
+  <button class="tab" onclick="switchTab('walkthrough')">Step-by-Step</button>
+  <button class="tab" onclick="switchTab('patterns')">Patterns & Concurrency</button>
+</div>
+
+<!-- ==================== TAB 1: CLASS DIAGRAM ==================== -->
+<div id="diagram" class="panel active">
+<svg id="diagramSvg" viewBox="0 0 940 560">
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <!-- Edges -->
+  <path class="edge" d="M470,62 L470,95" data-from="Main" data-to="PendencyManagementServiceImpl"/>
+  <path class="edge" d="M370,165 L260,195" data-from="PendencyManagementServiceImpl" data-to="TransactionRepositoryImpl"/>
+  <path class="edge" d="M570,165 L680,195" data-from="PendencyManagementServiceImpl" data-to="TagRepositoryImpl"/>
+  <path class="edge" d="M260,265 L260,310" data-from="TransactionRepositoryImpl" data-to="Transaction"/>
+  <path class="edge" d="M680,265 L680,310" data-from="TagRepositoryImpl" data-to="Tag"/>
+  <path class="edge" d="M680,380 L680,310" data-from="Tag" data-to="Tag" style="stroke-dasharray:4,3"/>
+  <path class="edge" d="M470,165 L470,420" data-from="PendencyManagementServiceImpl" data-to="PendencyManagementService" style="stroke-dasharray:5,4"/>
+  <path class="edge" d="M200,265 L130,420" data-from="TransactionRepositoryImpl" data-to="TransactionRepository" style="stroke-dasharray:5,4"/>
+  <path class="edge" d="M740,265 L810,420" data-from="TagRepositoryImpl" data-to="TagRepository" style="stroke-dasharray:5,4"/>
+  <path class="edge" d="M260,380 L380,415" data-from="Transaction" data-to="Exceptions"/>
+  <path class="edge" d="M200,265 L380,440" data-from="TransactionRepositoryImpl" data-to="Exceptions"/>
+
+  <!-- NODES -->
+  <g class="node" data-id="Main" onclick="showDetail('Main')">
+    <rect x="390" y="20" width="160" height="42" rx="8" fill="#ffe4e6" stroke="#f43f5e" stroke-width="2"/>
+    <text x="470" y="46" text-anchor="middle" fill="#1a1a2e" font-size="13" font-weight="700">Main</text>
+  </g>
+
+  <g class="node" data-id="PendencyManagementServiceImpl" onclick="showDetail('PendencyManagementServiceImpl')">
+    <rect x="300" y="95" width="340" height="70" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="470" y="125" text-anchor="middle" fill="#1e3a5f" font-size="14" font-weight="700">PendencyManagementServiceImpl</text>
+    <text x="470" y="148" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">SERVICE LAYER  |  ORCHESTRATOR</text>
+  </g>
+
+  <g class="node" data-id="TransactionRepositoryImpl" onclick="showDetail('TransactionRepositoryImpl')">
+    <rect x="120" y="200" width="280" height="65" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+    <text x="260" y="228" text-anchor="middle" fill="#14532d" font-size="13" font-weight="700">TransactionRepositoryImpl</text>
+    <text x="260" y="248" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="600">REPOSITORY  |  ConcurrentHashMap</text>
+  </g>
+
+  <g class="node" data-id="TagRepositoryImpl" onclick="showDetail('TagRepositoryImpl')">
+    <rect x="540" y="200" width="280" height="65" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+    <text x="680" y="228" text-anchor="middle" fill="#14532d" font-size="13" font-weight="700">TagRepositoryImpl</text>
+    <text x="680" y="248" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="600">REPOSITORY  |  TRIE STRUCTURE</text>
+  </g>
+
+  <g class="node" data-id="Transaction" onclick="showDetail('Transaction')">
+    <rect x="160" y="310" width="200" height="50" rx="8" fill="#fef9c3" stroke="#eab308" stroke-width="2"/>
+    <text x="260" y="333" text-anchor="middle" fill="#713f12" font-size="13" font-weight="700">Transaction</text>
+    <text x="260" y="348" text-anchor="middle" fill="#ca8a04" font-size="9">immutable (id + tags)</text>
+  </g>
+
+  <g class="node" data-id="Tag" onclick="showDetail('Tag')">
+    <rect x="580" y="310" width="200" height="50" rx="8" fill="#fef9c3" stroke="#eab308" stroke-width="2"/>
+    <text x="680" y="333" text-anchor="middle" fill="#713f12" font-size="13" font-weight="700">Tag (Trie Node)</text>
+    <text x="680" y="348" text-anchor="middle" fill="#ca8a04" font-size="9">AtomicInteger | ConcurrentHashMap</text>
+  </g>
+
+  <!-- Interfaces -->
+  <g class="node" data-id="PendencyManagementService" onclick="showDetail('PendencyManagementService')">
+    <rect x="360" y="420" width="220" height="42" rx="8" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="6,3"/>
+    <text x="470" y="446" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">&laquo;interface&raquo; PendencyManagementService</text>
+  </g>
+
+  <g class="node" data-id="TransactionRepository" onclick="showDetail('TransactionRepository')">
+    <rect x="30" y="420" width="210" height="42" rx="8" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="6,3"/>
+    <text x="135" y="446" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">&laquo;interface&raquo; TransactionRepository</text>
+  </g>
+
+  <g class="node" data-id="TagRepository" onclick="showDetail('TagRepository')">
+    <rect x="700" y="420" width="210" height="42" rx="8" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="6,3"/>
+    <text x="805" y="446" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">&laquo;interface&raquo; TagRepository</text>
+  </g>
+
+  <g class="node" data-id="Exceptions" onclick="showDetail('Exceptions')">
+    <rect x="350" y="500" width="240" height="42" rx="8" fill="#fecdd3" stroke="#f43f5e" stroke-width="2"/>
+    <text x="470" y="525" text-anchor="middle" fill="#881337" font-size="12" font-weight="600">DuplicateEntityException | NotFoundException</text>
+  </g>
+</svg>
+<p style="text-align:center;color:#64748b;font-size:12px;margin-top:-8px">Click any class to see details. Dashed lines = implements interface. Self-loop on Tag = recursive children.</p>
+</div>
+
+<!-- DETAIL SLIDE-IN -->
+<div id="detailPanel">
+  <button class="close-btn" onclick="closeDetail()">&times;</button>
+  <div id="detailContent"></div>
+</div>
+
+<!-- ==================== TAB 2: FLOW SIMULATOR ==================== -->
+<div id="flow" class="panel">
+<h2 style="text-align:center;margin-bottom:20px;color:#38bdf8">Flow Simulator</h2>
+<div class="sim-controls">
+  <button class="sim-btn active-sim" onclick="runSim('start')" id="simStart">startTracking(1112, [UPI, Karnataka, Bangalore])</button>
+  <button class="sim-btn" onclick="runSim('get')" id="simGet">getCounts([UPI, Karnataka])</button>
+  <button class="sim-btn" onclick="runSim('stop')" id="simStop">stopTracking(1112)</button>
+  <button class="sim-btn" onclick="runSim('invalid')" id="simInvalid">getCounts([Bangalore]) = 0</button>
+  <button class="sim-btn" onclick="runSim('dup')" id="simDup">startTracking duplicate</button>
+</div>
+
+<svg id="flowSvg" viewBox="0 0 860 400">
+  <defs><marker id="flowArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#334155"/></marker></defs>
+
+  <g class="flow-node" id="fn-caller"><rect x="30" y="30" width="130" height="44" fill="#334155" stroke="#f43f5e" stroke-width="1.5"/><text x="95" y="56">Caller</text></g>
+  <g class="flow-node" id="fn-service"><rect x="220" y="30" width="240" height="44" fill="#334155" stroke="#3b82f6" stroke-width="1.5"/><text x="340" y="56">PendencyManagementService</text></g>
+  <g class="flow-node" id="fn-validate"><rect x="520" y="30" width="160" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/><text x="600" y="56">Input Validation</text></g>
+
+  <g class="flow-node" id="fn-txnrepo"><rect x="60" y="150" width="240" height="44" fill="#334155" stroke="#22c55e" stroke-width="1.5"/><text x="180" y="176">TransactionRepository</text></g>
+  <g class="flow-node" id="fn-tagrepo"><rect x="380" y="150" width="220" height="44" fill="#334155" stroke="#22c55e" stroke-width="1.5"/><text x="490" y="176">TagRepository</text></g>
+  <g class="flow-node" id="fn-txnstore"><rect x="660" y="150" width="170" height="44" fill="#334155" stroke="#64748b" stroke-width="1.5"/><text x="745" y="176">ConcurrentHashMap</text></g>
+
+  <g class="flow-node" id="fn-trie"><rect x="120" y="270" width="200" height="44" fill="#334155" stroke="#eab308" stroke-width="1.5"/><text x="220" y="296">Trie Traversal</text></g>
+  <g class="flow-node" id="fn-atomic"><rect x="380" y="270" width="220" height="44" fill="#334155" stroke="#eab308" stroke-width="1.5"/><text x="490" y="296">AtomicInteger ++/--</text></g>
+  <g class="flow-node" id="fn-result"><rect x="660" y="270" width="170" height="44" fill="#334155" stroke="#22c55e" stroke-width="1.5"/><text x="745" y="296">Result</text></g>
+
+  <path class="flow-edge" id="fe-1" d="M160,52 L220,52"/>
+  <path class="flow-edge" id="fe-2" d="M460,52 L520,52"/>
+  <path class="flow-edge" id="fe-3a" d="M280,74 L180,150"/>
+  <path class="flow-edge" id="fe-3b" d="M400,74 L490,150"/>
+  <path class="flow-edge" id="fe-4" d="M300,172 L660,172"/>
+  <path class="flow-edge" id="fe-5" d="M490,194 L220,270"/>
+  <path class="flow-edge" id="fe-6" d="M320,292 L380,292"/>
+  <path class="flow-edge" id="fe-7" d="M600,292 L660,292"/>
+</svg>
+<div id="flowLog"></div>
+</div>
+
+<!-- ==================== TAB 3: LIVE TRIE VISUALIZER ==================== -->
+<div id="trie" class="panel">
+<h2 style="text-align:center;margin-bottom:8px;color:#38bdf8">Live Trie Visualizer</h2>
+<p style="text-align:center;color:#64748b;font-size:13px;margin-bottom:20px">Watch the hierarchical Tag trie build and shrink as entities are tracked / untracked</p>
+<div class="trie-controls" id="trieControls">
+  <button class="trie-btn" onclick="trieAction('start',1112,['UPI','Karnataka','Bangalore'])">start(1112, [UPI, KA, BLR])</button>
+  <button class="trie-btn" onclick="trieAction('start',2451,['UPI','Karnataka','Mysore'])">start(2451, [UPI, KA, MYS])</button>
+  <button class="trie-btn" onclick="trieAction('start',3421,['UPI','Rajasthan','Jaipur'])">start(3421, [UPI, RJ, JPR])</button>
+  <button class="trie-btn" onclick="trieAction('start',1221,['Wallet','Karnataka','Bangalore'])">start(1221, [Wallet, KA, BLR])</button>
+  <button class="trie-btn" onclick="trieAction('stop',1112)">stop(1112)</button>
+  <button class="trie-btn" onclick="trieAction('stop',2451)">stop(2451)</button>
+  <button class="trie-btn" onclick="trieAction('get',null,['UPI'])">getCounts([UPI])</button>
+  <button class="trie-btn" onclick="trieAction('get',null,['UPI','Karnataka'])">getCounts([UPI, KA])</button>
+  <button class="trie-btn" onclick="trieAction('get',null,['Bangalore'])">getCounts([Bangalore])</button>
+  <button class="trie-btn" onclick="trieReset()" style="border-color:#f43f5e;color:#f43f5e">Reset</button>
+</div>
+<svg id="trieSvg" viewBox="0 0 800 320"></svg>
+<div id="trieLog"></div>
+</div>
+
+<!-- ==================== TAB 4: STEP-BY-STEP ==================== -->
+<div id="walkthrough" class="panel">
+<h2 style="text-align:center;margin-bottom:24px;color:#38bdf8">How the Pendency System Works</h2>
+<div class="step-bar" id="stepBar"></div>
+<div id="stepContent"></div>
+<div class="step-nav">
+  <button class="prev" id="prevBtn" onclick="stepPrev()">Previous</button>
+  <button class="next" id="nextBtn" onclick="stepNext()">Next</button>
+</div>
+</div>
+
+<!-- ==================== TAB 5: PATTERNS ==================== -->
+<div id="patterns" class="panel">
+<h2 style="text-align:center;margin-bottom:24px;color:#38bdf8">Design Patterns & Concurrency</h2>
+<div class="patterns">
+<table>
+  <tr><th>Pattern</th><th>Where</th><th>Why</th></tr>
+  <tr><td><strong style="color:#a78bfa">Repository</strong></td><td>TagRepository, TransactionRepository</td><td>Abstracts data access behind interfaces; service never knows about storage details</td></tr>
+  <tr><td><strong style="color:#a78bfa">Service Layer</strong></td><td>PendencyManagementServiceImpl</td><td>Orchestrates repositories, owns validation and business logic</td></tr>
+  <tr><td><strong style="color:#a78bfa">Dependency Injection</strong></td><td>Service constructor</td><td>Repos injected via constructor &mdash; testable, swappable implementations</td></tr>
+  <tr><td><strong style="color:#a78bfa">Trie (Prefix Tree)</strong></td><td>Tag + TagRepositoryImpl</td><td>O(depth) lookups for hierarchical tag counts; space-efficient shared prefixes</td></tr>
+  <tr><th colspan="3" style="padding-top:16px;color:#64748b">Concurrency Mechanisms</th></tr>
+  <tr><td><strong style="color:#22d3ee">ConcurrentHashMap</strong></td><td>Tag (childTags), TransactionRepositoryImpl (transactions)</td><td>Thread-safe map without full locking</td></tr>
+  <tr><td><strong style="color:#22d3ee">AtomicInteger</strong></td><td>Tag (count)</td><td>Lock-free atomic increment/decrement of pendency counts</td></tr>
+  <tr><td><strong style="color:#22d3ee">computeIfAbsent</strong></td><td>Tag.getOrCreateChild()</td><td>Atomic create-if-missing for trie nodes &mdash; no double-insert races</td></tr>
+  <tr><td><strong style="color:#22d3ee">putIfAbsent</strong></td><td>TransactionRepositoryImpl.create()</td><td>Atomic duplicate check + insert in one operation</td></tr>
+  <tr><td><strong style="color:#22d3ee">unmodifiableList</strong></td><td>Transaction (tags)</td><td>Immutable tag list prevents external mutation of stored entity</td></tr>
+  <tr><th colspan="3" style="padding-top:16px;color:#64748b">Error Handling</th></tr>
+  <tr><td><strong style="color:#fb923c">IllegalArgumentException</strong></td><td>Service layer</td><td>Null/empty validation at the boundary</td></tr>
+  <tr><td><strong style="color:#fb923c">DuplicateEntityException</strong></td><td>TransactionRepositoryImpl</td><td>Prevents double-tracking the same entity ID</td></tr>
+  <tr><td><strong style="color:#fb923c">NotFoundException</strong></td><td>TransactionRepositoryImpl</td><td>Stopping/getting an entity that was never tracked</td></tr>
+</table>
+</div>
+</div>
+
+<script>
+// ==================== TAB SWITCHING ====================
+function switchTab(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  closeDetail();
+}
+
+// ==================== CLASS DETAILS ====================
+const details = {
+  Main:{
+    title:'Main',pkg:'com.PendencySystem',badges:[],
+    desc:'Entry point. Creates repository instances, injects them into the service, and demonstrates all operations: tracking transactions, querying counts at various hierarchy levels, and stopping tracking.',
+    methods:['Creates TransactionRepositoryImpl + TagRepositoryImpl','Injects into PendencyManagementServiceImpl','Demonstrates payment tracking (UPI/Wallet) and restaurant order tracking','Runs PendencySystemTest'],
+    connects:['PendencyManagementServiceImpl','TransactionRepositoryImpl','TagRepositoryImpl']
+  },
+  PendencyManagementServiceImpl:{
+    title:'PendencyManagementServiceImpl',pkg:'com.PendencySystem.service.impl',badges:['dp:Service Layer','dp:DI'],
+    desc:'The orchestrator. Coordinates between TransactionRepository and TagRepository. Owns input validation. Implements the PendencyManagementService interface.',
+    methods:['startTracking(id, tags) &mdash; validate, store txn, increment trie counts','stopTracking(id) &mdash; get txn tags, decrement trie, remove txn','getCounts(tags) &mdash; delegate to TagRepository.getCounts()'],
+    connects:['TransactionRepositoryImpl','TagRepositoryImpl','PendencyManagementService','Transaction']
+  },
+  TransactionRepositoryImpl:{
+    title:'TransactionRepositoryImpl',pkg:'com.PendencySystem.repository.impl',badges:['dp:Repository','ts:Thread-Safe'],
+    desc:'Stores entity-to-tags mapping in a ConcurrentHashMap. Uses putIfAbsent for atomic duplicate detection. No singletons &mdash; plain instance, injected via DI.',
+    methods:['create(id, tags) &mdash; putIfAbsent, throws DuplicateEntityException','get(id) &mdash; throws NotFoundException','remove(id) &mdash; returns removed Transaction'],
+    connects:['Transaction','TransactionRepository','Exceptions']
+  },
+  TagRepositoryImpl:{
+    title:'TagRepositoryImpl',pkg:'com.PendencySystem.repository.impl',badges:['dp:Repository','pat:Trie','ts:Thread-Safe'],
+    desc:'Manages a trie (prefix tree) of Tag nodes. The root is a dummy "ROOT" node. Each tag level has a ConcurrentHashMap of children and an AtomicInteger count. Lookups are O(depth).',
+    methods:['incrementTags(tags) &mdash; walk trie creating nodes via computeIfAbsent, increment each','decrementTags(tags) &mdash; walk trie, decrement each level','getCounts(tags) &mdash; walk trie, return count at deepest match (0 if missing)'],
+    connects:['Tag','TagRepository']
+  },
+  Tag:{
+    title:'Tag',pkg:'com.PendencySystem.model',badges:['pat:Trie Node','ts:Thread-Safe'],
+    desc:'A node in the hierarchical trie. Stores its name, an AtomicInteger count for pendency tracking, and a ConcurrentHashMap of child Tag nodes. Thread-safe at every level.',
+    methods:['getOrCreateChild(name) &mdash; computeIfAbsent (atomic)','getChild(name) &mdash; returns null if missing','incrementCount() / decrementCount() &mdash; AtomicInteger','getCount() &mdash; current pendency count at this hierarchy level'],
+    connects:['Tag']
+  },
+  Transaction:{
+    title:'Transaction',pkg:'com.PendencySystem.model',badges:[],
+    desc:'Immutable record mapping an entity ID to its hierarchical tags. Tags list is wrapped in Collections.unmodifiableList to prevent mutation.',
+    methods:['getId() &mdash; entity identifier','getTags() &mdash; unmodifiable list of hierarchical tags'],
+    connects:[]
+  },
+  PendencyManagementService:{
+    title:'PendencyManagementService',pkg:'com.PendencySystem.service.interfaces',badges:['dp:Interface'],
+    desc:'Contract for the pendency system. Defines startTracking, stopTracking, getCounts. Implemented by PendencyManagementServiceImpl.',
+    methods:['startTracking(Integer id, List&lt;String&gt; tags)','stopTracking(Integer id)','getCounts(List&lt;String&gt; tags) &rarr; int'],
+    connects:['PendencyManagementServiceImpl']
+  },
+  TransactionRepository:{
+    title:'TransactionRepository',pkg:'com.PendencySystem.repository.interfaces',badges:['dp:Interface'],
+    desc:'Data access contract for entity storage. Decouples service from storage implementation.',
+    methods:['create(id, tags)','get(id) &rarr; Transaction','remove(id) &rarr; Transaction'],
+    connects:['TransactionRepositoryImpl']
+  },
+  TagRepository:{
+    title:'TagRepository',pkg:'com.PendencySystem.repository.interfaces',badges:['dp:Interface'],
+    desc:'Data access contract for hierarchical tag counts. Decouples service from trie implementation.',
+    methods:['incrementTags(List&lt;String&gt; tags)','decrementTags(List&lt;String&gt; tags)','getCounts(List&lt;String&gt; tags) &rarr; int'],
+    connects:['TagRepositoryImpl']
+  },
+  Exceptions:{
+    title:'Exceptions',pkg:'com.PendencySystem.exceptions',badges:[],
+    desc:'Custom RuntimeExceptions for domain-specific error cases.',
+    methods:['DuplicateEntityException &mdash; thrown when tracking an already-tracked entity ID','NotFoundException &mdash; thrown when stopping/getting a non-existent entity'],
+    connects:[]
+  }
+};
+
+function showDetail(id){
+  const d=details[id]; if(!d) return;
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('highlight'));
+  const node=document.querySelector(`.node[data-id="${id}"]`);
+  if(node) node.classList.add('highlight');
+  document.querySelectorAll('.edge').forEach(e=>{
+    e.classList.remove('active');
+    if(e.dataset.from===id||e.dataset.to===id) e.classList.add('active');
+  });
+  let html=`<h3>${d.title}</h3><div class="pkg">${d.pkg}</div>`;
+  html+=d.badges.map(b=>{const[t,l]=b.split(':');return `<span class="badge badge-${t}">${l}</span>`}).join('')+'<br><br>';
+  html+=`<p>${d.desc}</p><ul>`+d.methods.map(m=>`<li><code>${m}</code></li>`).join('')+'</ul>';
+  if(d.connects.length){
+    html+='<p style="margin-top:12px;color:#64748b;font-size:12px"><strong>Connects to:</strong> '+
+      d.connects.map(c=>`<span style="color:#38bdf8;cursor:pointer" onclick="showDetail('${c}')">${c}</span>`).join(', ')+'</p>';
+  }
+  document.getElementById('detailContent').innerHTML=html;
+  document.getElementById('detailPanel').classList.add('open');
+}
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('open');
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('highlight'));
+  document.querySelectorAll('.edge').forEach(e=>e.classList.remove('active'));
+}
+
+// ==================== FLOW SIMULATOR ====================
+const scenarios={
+  start:{
+    path:['fn-caller','fn-service','fn-validate','fn-txnrepo','fn-txnstore','fn-tagrepo','fn-trie','fn-atomic','fn-result'],
+    edges:['fe-1','fe-2','fe-3a','fe-4','fe-3b','fe-5','fe-6','fe-7'],
+    logs:[
+      {cls:'log-info',msg:'> startTracking(1112, ["UPI", "Karnataka", "Bangalore"])'},
+      {cls:'',msg:'  Validating: id != null, tags not empty... OK'},
+      {cls:'',msg:'  TransactionRepository.create(1112, [...])'},
+      {cls:'',msg:'  ConcurrentHashMap.putIfAbsent(1112, Transaction) -> stored'},
+      {cls:'log-warn',msg:'  TagRepository.incrementTags(["UPI", "Karnataka", "Bangalore"])'},
+      {cls:'',msg:'  Trie: ROOT -> getOrCreateChild("UPI") -> count.incrementAndGet() = 1'},
+      {cls:'',msg:'  Trie: UPI -> getOrCreateChild("Karnataka") -> count.incrementAndGet() = 1'},
+      {cls:'',msg:'  Trie: Karnataka -> getOrCreateChild("Bangalore") -> count.incrementAndGet() = 1'},
+      {cls:'log-success',msg:'  Entity 1112 now tracked. All 3 trie levels incremented.'}
+    ]
+  },
+  get:{
+    path:['fn-caller','fn-service','fn-validate','fn-tagrepo','fn-trie','fn-result'],
+    edges:['fe-1','fe-2','fe-3b','fe-5','fe-7'],
+    logs:[
+      {cls:'log-info',msg:'> getCounts(["UPI", "Karnataka"])'},
+      {cls:'',msg:'  Validating: tags not empty... OK'},
+      {cls:'log-warn',msg:'  TagRepository.getCounts(["UPI", "Karnataka"])'},
+      {cls:'',msg:'  Trie: ROOT -> getChild("UPI") -> found'},
+      {cls:'',msg:'  Trie: UPI -> getChild("Karnataka") -> found'},
+      {cls:'log-success',msg:'  Return: Karnataka.getCount() = 2'}
+    ]
+  },
+  stop:{
+    path:['fn-caller','fn-service','fn-validate','fn-txnrepo','fn-txnstore','fn-tagrepo','fn-trie','fn-atomic','fn-result'],
+    edges:['fe-1','fe-2','fe-3a','fe-4','fe-3b','fe-5','fe-6','fe-7'],
+    logs:[
+      {cls:'log-info',msg:'> stopTracking(1112)'},
+      {cls:'',msg:'  Validating: id != null... OK'},
+      {cls:'',msg:'  TransactionRepository.get(1112) -> Transaction{tags: [UPI, Karnataka, Bangalore]}'},
+      {cls:'log-warn',msg:'  TagRepository.decrementTags(["UPI", "Karnataka", "Bangalore"])'},
+      {cls:'',msg:'  Trie: UPI.count.decrementAndGet()'},
+      {cls:'',msg:'  Trie: Karnataka.count.decrementAndGet()'},
+      {cls:'',msg:'  Trie: Bangalore.count.decrementAndGet()'},
+      {cls:'',msg:'  TransactionRepository.remove(1112) -> removed'},
+      {cls:'log-success',msg:'  Entity 1112 untracked. All 3 trie levels decremented.'}
+    ]
+  },
+  invalid:{
+    path:['fn-caller','fn-service','fn-validate','fn-tagrepo','fn-trie','fn-result'],
+    edges:['fe-1','fe-2','fe-3b','fe-5','fe-7'],
+    logs:[
+      {cls:'log-info',msg:'> getCounts(["Bangalore"])'},
+      {cls:'',msg:'  Validating: tags not empty... OK'},
+      {cls:'log-warn',msg:'  TagRepository.getCounts(["Bangalore"])'},
+      {cls:'',msg:'  Trie: ROOT -> getChild("Bangalore") -> null (not a root-level tag)'},
+      {cls:'log-fail',msg:'  Return: 0 (hierarchy does not match — Bangalore is not at level 1)'}
+    ]
+  },
+  dup:{
+    path:['fn-caller','fn-service','fn-validate','fn-txnrepo','fn-txnstore'],
+    edges:['fe-1','fe-2','fe-3a','fe-4'],
+    logs:[
+      {cls:'log-info',msg:'> startTracking(1112, ["Wallet", "Delhi"]) — but 1112 already tracked!'},
+      {cls:'',msg:'  Validating: id != null, tags not empty... OK'},
+      {cls:'',msg:'  TransactionRepository.create(1112, [...])'},
+      {cls:'',msg:'  ConcurrentHashMap.putIfAbsent(1112) -> returned existing entry!'},
+      {cls:'log-fail',msg:'  THROWN: DuplicateEntityException("Entity already tracked: 1112")'},
+      {cls:'log-fail',msg:'  Tag trie NOT modified — exception thrown before incrementing.'}
+    ]
+  }
+};
+
+let simRunning=false;
+function runSim(type){
+  if(simRunning) return;
+  simRunning=true;
+  const labels={start:'simStart',get:'simGet',stop:'simStop',invalid:'simInvalid',dup:'simDup'};
+  document.querySelectorAll('.sim-btn').forEach(b=>{b.classList.remove('active-sim');b.disabled=true});
+  document.getElementById(labels[type]).classList.add('active-sim');
+
+  document.querySelectorAll('.flow-node').forEach(n=>{n.classList.remove('lit');n.classList.remove('lit-err')});
+  document.querySelectorAll('.flow-edge').forEach(e=>e.classList.remove('lit'));
+  document.getElementById('flowLog').innerHTML='';
+
+  const sc=scenarios[type];
+  const isErr=type==='dup'||type==='invalid';
+  let i=0;
+  function step(){
+    if(i<sc.path.length){
+      const cls=(isErr&&i===sc.path.length-1)?'lit-err':'lit';
+      document.getElementById(sc.path[i]).classList.add(cls);
+    }
+    if(i>0&&i-1<sc.edges.length) document.getElementById(sc.edges[i-1]).classList.add('lit');
+    const logsPerStep=Math.ceil(sc.logs.length/sc.path.length);
+    const s=i*logsPerStep, e=Math.min(s+logsPerStep,sc.logs.length);
+    for(let l=s;l<e;l++){
+      const div=document.createElement('div');
+      div.className='log-line '+(sc.logs[l].cls||'');
+      div.textContent=sc.logs[l].msg;
+      div.style.animationDelay=((l-s)*0.12)+'s';
+      document.getElementById('flowLog').appendChild(div);
+    }
+    document.getElementById('flowLog').scrollTop=9999;
+    i++;
+    if(i<=sc.path.length) setTimeout(step,600);
+    else{simRunning=false;document.querySelectorAll('.sim-btn').forEach(b=>b.disabled=false)}
+  }
+  step();
+}
+
+// ==================== LIVE TRIE VISUALIZER ====================
+let trieRoot={name:'ROOT',count:0,children:{}};
+let trieEntities={};
+
+function trieAction(action,id,tags){
+  const log=document.getElementById('trieLog');
+  if(action==='start'){
+    if(trieEntities[id]){
+      log.innerHTML+=`<div class="log-fail">ERROR: Entity ${id} already tracked</div>`;
+      return;
+    }
+    trieEntities[id]=tags;
+    let node=trieRoot;
+    for(const t of tags){
+      if(!node.children[t]) node.children[t]={name:t,count:0,children:{}};
+      node=node.children[t];
+      node.count++;
+    }
+    log.innerHTML+=`<div class="log-success">startTracking(${id}, [${tags.join(', ')}]) — incremented ${tags.length} levels</div>`;
+  } else if(action==='stop'){
+    if(!trieEntities[id]){
+      log.innerHTML+=`<div class="log-fail">ERROR: Entity ${id} not found</div>`;
+      return;
+    }
+    const t=trieEntities[id];
+    let node=trieRoot;
+    for(const tag of t){
+      node=node.children[tag];
+      if(node) node.count--;
+    }
+    delete trieEntities[id];
+    log.innerHTML+=`<div class="log-warn">stopTracking(${id}) — decremented ${t.length} levels</div>`;
+  } else if(action==='get'){
+    let node=trieRoot;
+    for(const t of tags){
+      if(!node.children[t]){
+        log.innerHTML+=`<div class="log-info">getCounts([${tags.join(', ')}]) = 0 (path not found at "${t}")</div>`;
+        log.scrollTop=9999;renderTrie(tags);return;
+      }
+      node=node.children[t];
+    }
+    log.innerHTML+=`<div class="log-info">getCounts([${tags.join(', ')}]) = ${node.count}</div>`;
+  }
+  log.scrollTop=9999;
+  renderTrie(tags||[]);
+}
+
+function trieReset(){
+  trieRoot={name:'ROOT',count:0,children:{}};
+  trieEntities={};
+  document.getElementById('trieLog').innerHTML='<div style="color:#64748b">Trie reset.</div>';
+  renderTrie([]);
+}
+
+function renderTrie(highlightPath){
+  const svg=document.getElementById('trieSvg');
+  const nodes=[];const edges=[];
+  function layout(node,x,y,dx,path){
+    const id=path.join('.');
+    const hl=highlightPath&&pathMatches(path,highlightPath);
+    nodes.push({id,name:node.name,count:node.count,x,y,hl});
+    const kids=Object.keys(node.children);
+    if(!kids.length) return;
+    const totalW=kids.length*120;
+    let cx=x-totalW/2+60;
+    for(const k of kids){
+      const child=node.children[k];
+      const cp=[...path,k];
+      edges.push({x1:x,y1:y+16,x2:cx,y2:y+70-16});
+      layout(child,cx,y+70,dx/kids.length,cp);
+      cx+=120;
+    }
+  }
+  layout(trieRoot,400,30,700,[]);
+
+  let html='';
+  for(const e of edges) html+=`<line class="trie-edge" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
+  for(const n of nodes){
+    const fill=n.hl?'#0c4a6e':'#334155';
+    const stroke=n.hl?'#38bdf8':n.count>0?'#22c55e':'#475569';
+    const sw=n.hl?3:2;
+    html+=`<g class="trie-node"><circle cx="${n.x}" cy="${n.y}" r="22" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+    html+=`<text x="${n.x}" y="${n.y+4}">${n.name.length>6?n.name.substring(0,5)+'..':n.name}</text>`;
+    html+=`<text class="trie-count" x="${n.x}" y="${n.y-28}">${n.count}</text></g>`;
+  }
+  const maxY=Math.max(...nodes.map(n=>n.y),100);
+  svg.setAttribute('viewBox',`0 0 800 ${maxY+50}`);
+  svg.style.height=Math.min(maxY+50,400)+'px';
+  svg.innerHTML=html;
+}
+
+function pathMatches(nodePath,queryPath){
+  if(nodePath.length===0) return false;
+  if(nodePath.length>queryPath.length) return false;
+  for(let i=0;i<nodePath.length;i++) if(nodePath[i]!==queryPath[i]) return false;
+  return true;
+}
+
+renderTrie([]);
+
+// ==================== STEP-BY-STEP WALKTHROUGH ====================
+const steps=[
+  {title:'1. Create Repositories',
+   body:'Instantiate <code>TransactionRepositoryImpl</code> (ConcurrentHashMap for entities) and <code>TagRepositoryImpl</code> (trie with a ROOT node). No singletons — plain instances for testability.',
+   classes:[{name:'TransactionRepositoryImpl',color:'#22c55e'},{name:'TagRepositoryImpl',color:'#22c55e'}]},
+  {title:'2. Inject into Service',
+   body:'Create <code>PendencyManagementServiceImpl</code> with both repos passed via constructor. This is <strong>Dependency Injection</strong> — the service doesn\'t know or care about concrete implementations.',
+   classes:[{name:'PendencyManagementServiceImpl',color:'#3b82f6'}]},
+  {title:'3. startTracking(id, tags)',
+   body:'Service validates inputs (null/empty checks). Then: <code>TransactionRepository.create()</code> stores the entity+tags via <code>putIfAbsent</code> (atomic duplicate check). Then <code>TagRepository.incrementTags()</code> walks the trie.',
+   classes:[{name:'PendencyManagementServiceImpl',color:'#3b82f6'},{name:'TransactionRepositoryImpl',color:'#22c55e'},{name:'TagRepositoryImpl',color:'#22c55e'}]},
+  {title:'4. Trie Increment — The Core',
+   body:'For tags ["UPI","Karnataka","Bangalore"]: walk from ROOT, at each level call <code>getOrCreateChild()</code> (uses <code>computeIfAbsent</code> — thread-safe) then <code>count.incrementAndGet()</code> (<code>AtomicInteger</code> — lock-free). 3 tags = 3 hops.',
+   classes:[{name:'Tag',color:'#eab308'},{name:'TagRepositoryImpl',color:'#22c55e'}]},
+  {title:'5. getCounts(tags)',
+   body:'Walk the trie following the tag hierarchy. At each level, call <code>getChild()</code>. If any level returns null, return 0 (invalid hierarchy). Otherwise return <code>count.get()</code> at the deepest matched node. O(depth) lookup.',
+   classes:[{name:'TagRepositoryImpl',color:'#22c55e'},{name:'Tag',color:'#eab308'}]},
+  {title:'6. Why getCounts(["Bangalore"]) = 0',
+   body:'Bangalore is at level 3 in the trie (under UPI > Karnataka). But the query starts at ROOT and looks for a direct child named "Bangalore" — which doesn\'t exist. The hierarchy must be followed in order. This is by design.',
+   classes:[{name:'Tag',color:'#eab308'}]},
+  {title:'7. stopTracking(id)',
+   body:'Service gets the <code>Transaction</code> from the repo (to retrieve its tags), then calls <code>TagRepository.decrementTags()</code> to walk the trie and decrement each level, then <code>TransactionRepository.remove()</code> to delete the entity.',
+   classes:[{name:'PendencyManagementServiceImpl',color:'#3b82f6'},{name:'Transaction',color:'#eab308'}]},
+  {title:'8. Thread Safety Throughout',
+   body:'Every mutable structure is concurrent: <code>ConcurrentHashMap</code> for trie children and transaction store, <code>AtomicInteger</code> for counts, <code>putIfAbsent</code>/<code>computeIfAbsent</code> for atomic insert. Verified by test: 10 threads x 100 ops = 1000 entities tracked and stopped correctly.',
+   classes:[{name:'Tag',color:'#0891b2'},{name:'TransactionRepositoryImpl',color:'#0891b2'}]},
+  {title:'9. Extensibility',
+   body:'The system is generic — any number of hierarchical tags work. Restaurant orders: <code>startTracking(orderId, [location, restaurant, cuisine, title])</code>. No code changes needed. New repo implementations can be injected without touching the service. Interfaces ensure loose coupling.',
+   classes:[{name:'PendencyManagementService',color:'#a855f7'},{name:'TagRepository',color:'#a855f7'},{name:'TransactionRepository',color:'#a855f7'}]}
+];
+
+let currentStep=0;
+function renderStep(){
+  let bar='';
+  for(let i=0;i<steps.length;i++){
+    if(i>0) bar+=`<div class="step-connector ${i<=currentStep?'done':''}"></div>`;
+    bar+=`<div class="step-dot ${i<currentStep?'done':''} ${i===currentStep?'current':''}" onclick="goStep(${i})">${i+1}</div>`;
+  }
+  document.getElementById('stepBar').innerHTML=bar;
+  const s=steps[currentStep];
+  let html=`<h3>${s.title}</h3><p>${s.body}</p><div class="hc-row">`+
+    s.classes.map(c=>`<span class="hc" style="background:${c.color}22;color:${c.color};border:1px solid ${c.color}">${c.name}</span>`).join('')+'</div>';
+  document.getElementById('stepContent').innerHTML=html;
+  document.getElementById('prevBtn').disabled=currentStep===0;
+  document.getElementById('nextBtn').disabled=currentStep===steps.length-1;
+}
+function stepNext(){if(currentStep<steps.length-1){currentStep++;renderStep()}}
+function stepPrev(){if(currentStep>0){currentStep--;renderStep()}}
+function goStep(i){currentStep=i;renderStep()}
+renderStep();
+</script>
+</body>
+</html>

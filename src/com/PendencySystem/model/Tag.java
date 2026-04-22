@@ -1,33 +1,28 @@
 package com.PendencySystem.model;
 
-//import lombok.Getter;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import java.util.HashMap;
-import java.util.Map;
-
-//@Getter
 public class Tag {
-    private final Map<String, Tag> childTags;
-    private Integer count;
+    private final String name;
+    private final ConcurrentHashMap<String, Tag> childTags = new ConcurrentHashMap<>();
+    private final AtomicInteger count = new AtomicInteger(0);
 
     public Tag(String name) {
-        this.childTags = new HashMap<>();
-        this.count = 0;
+        this.name = name;
     }
 
-    public void incrementCount(){
-        this.count++;
+    public String getName() { return name; }
+    public ConcurrentHashMap<String, Tag> getChildTags() { return childTags; }
+    public int getCount() { return count.get(); }
+    public int incrementCount() { return count.incrementAndGet(); }
+    public int decrementCount() { return count.decrementAndGet(); }
+
+    public Tag getOrCreateChild(String childName) {
+        return childTags.computeIfAbsent(childName, Tag::new);
     }
 
-    public void decrementCount(){
-        this.count--;
-    }
-
-    public Map<String, Tag> getChildTags(){
-        return this.childTags;
-    }
-
-    public Integer getCount(){
-        return this.count;
+    public Tag getChild(String childName) {
+        return childTags.get(childName);
     }
 }
