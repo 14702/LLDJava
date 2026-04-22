@@ -1,4 +1,6 @@
 package com.ToDo.service.interfaces;
+
+import com.ToDo.model.Activity;
 import com.ToDo.model.Task;
 import com.ToDo.model.TaskStatistics;
 import java.util.Date;
@@ -8,13 +10,15 @@ public interface TodoService {
 
     void addTask(Task task);
 
-    Task getTask(String taskId); //a task
+    Task getTask(String taskId);
 
     void modifyTask(Task task);
 
     void removeTask(String taskId);
 
-    List<Task> listTasks(); // a list of tasks which match the given filter ordered based on a defined sort criteria
+    void completeTask(String taskId);
+
+    List<Task> listTasks();
 
     List<Task> listTasks(Date endTime);
 
@@ -22,11 +26,11 @@ public interface TodoService {
 
     List<Task> listTasks(List<String> tags);
 
-    TaskStatistics getStatistics(); // statistics for the given time period (if supplied)
+    TaskStatistics getStatistics();
 
-    TaskStatistics getStatistics(Date startTime, Date endTime); // statistics for the given time period (if supplied)
+    TaskStatistics getStatistics(Date startTime, Date endTime);
 
-    void getActivityLog();// -> activity log for the given time period (if supplied)
+    List<Activity> getActivityLog();
 
-    void getActivityLog(Date startTime, Date endTime);// -> activity log for the given time period (if supplied)
+    List<Activity> getActivityLog(Date startTime, Date endTime);
 }

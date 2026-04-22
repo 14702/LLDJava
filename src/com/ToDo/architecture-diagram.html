@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ToDo Application — Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #2d3436; color: #dfe6e9; font-family: 'Segoe UI', system-ui, sans-serif; padding: 18px; min-height: 100vh; }
+  h1 { text-align: center; font-size: 1.35rem; font-weight: 600; color: #74b9ff; margin-bottom: 14px; letter-spacing: 0.5px; }
+  .layer { display: flex; justify-content: center; gap: 18px; flex-wrap: nowrap; margin-bottom: 6px; width: 100%; }
+  .box { background: #3d4a4f; border: 1.5px solid #636e72; border-radius: 8px; padding: 10px 14px; min-width: 150px; max-width: 280px; flex: 1; cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+  .box:hover { border-color: #74b9ff; box-shadow: 0 0 8px rgba(116,185,255,.25); }
+  .box.interface { border-color: #a29bfe; }
+  .box.enum { border-color: #fdcb6e; }
+  .box.exception { border-color: #ff7675; }
+  .box.model { border-color: #55efc4; }
+  .box-title { font-weight: 700; font-size: .85rem; margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+  .box-title .tag { font-size: .6rem; padding: 1px 6px; border-radius: 3px; font-weight: 500; }
+  .tag-iface { background: #6c5ce7; color: #fff; }
+  .tag-class { background: #00b894; color: #fff; }
+  .tag-enum { background: #fdcb6e; color: #2d3436; }
+  .tag-exc { background: #d63031; color: #fff; }
+  .fields, .methods { font-size: .72rem; color: #b2bec3; line-height: 1.55; }
+  .fields { border-bottom: 1px solid #636e72; padding-bottom: 4px; margin-bottom: 4px; }
+  .methods span { color: #81ecec; }
+  .arrow-row { display: flex; justify-content: center; gap: 18px; width: 100%; margin: 2px 0; }
+  .arrow { text-align: center; flex: 1; max-width: 280px; min-width: 150px; color: #636e72; font-size: 1.1rem; line-height: 1; }
+  .detail-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.6); z-index: 10; justify-content: center; align-items: center; }
+  .detail-overlay.show { display: flex; }
+  .detail-card { background: #3d4a4f; border: 1.5px solid #74b9ff; border-radius: 10px; padding: 22px 28px; max-width: 520px; width: 90%; max-height: 80vh; overflow-y: auto; }
+  .detail-card h2 { color: #74b9ff; font-size: 1.05rem; margin-bottom: 10px; }
+  .detail-card p { font-size: .82rem; line-height: 1.6; color: #dfe6e9; margin-bottom: 8px; }
+  .detail-card .close { float: right; cursor: pointer; color: #ff7675; font-weight: 700; font-size: 1.1rem; }
+  .detail-card code { background: #2d3436; padding: 1px 5px; border-radius: 3px; font-size: .78rem; color: #81ecec; }
+  .flow { width: 100%; margin-top: 18px; }
+  .flow h2 { text-align: center; font-size: 1rem; color: #74b9ff; margin-bottom: 10px; }
+  .flow-steps { display: flex; justify-content: center; align-items: center; gap: 0; width: 100%; flex-wrap: nowrap; }
+  .flow-step { background: #3d4a4f; border: 1.5px solid #636e72; border-radius: 8px; padding: 8px 14px; font-size: .75rem; text-align: center; flex: 1; min-width: 0; }
+  .flow-arrow { color: #74b9ff; font-size: 1.1rem; padding: 0 4px; flex-shrink: 0; }
+  .legend { display: flex; justify-content: center; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: .7rem; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; }
+</style>
+</head>
+<body>
+
+<h1>ToDo Task Tracker — Architecture Diagram</h1>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:#6c5ce7;border-color:#a29bfe;"></div> Interface</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#00b894;border-color:#55efc4;"></div> Model / Class</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fdcb6e;border-color:#fdcb6e;"></div> Enum</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#d63031;border-color:#ff7675;"></div> Exception</div>
+</div>
+
+<!-- Row 1: Driver -->
+<div class="layer">
+  <div class="box" onclick="showDetail('d-app')">
+    <div class="box-title"><span class="tag tag-class">class</span> ToDoApplication</div>
+    <div class="fields">— main() driver</div>
+    <div class="methods"><span>main(args)</span></div>
+  </div>
+</div>
+<div class="arrow-row"><div class="arrow">▼ uses</div></div>
+
+<!-- Row 2: Service Interface + Impl -->
+<div class="layer">
+  <div class="box interface" onclick="showDetail('d-svc-i')">
+    <div class="box-title"><span class="tag tag-iface">interface</span> TodoService</div>
+    <div class="methods">
+      <span>addTask · getTask · modifyTask</span><br>
+      <span>removeTask · completeTask</span><br>
+      <span>listTasks(…) · getStatistics(…)</span><br>
+      <span>getActivityLog(…)</span>
+    </div>
+  </div>
+  <div class="box" onclick="showDetail('d-svc')">
+    <div class="box-title"><span class="tag tag-class">class</span> TodoServiceImpl</div>
+    <div class="fields">- taskRepository: TaskRepository</div>
+    <div class="methods">
+      <span>completeTask()</span> → auto‑remove<br>
+      <span>getStatistics(start, end)</span><br>
+      <span>getActivityLog(start, end)</span>
+    </div>
+  </div>
+</div>
+<div class="arrow-row">
+  <div class="arrow">◁ implements</div>
+  <div class="arrow">▼ delegates to</div>
+</div>
+
+<!-- Row 3: Repository Interface + Impl -->
+<div class="layer">
+  <div class="box interface" onclick="showDetail('d-repo-i')">
+    <div class="box-title"><span class="tag tag-iface">interface</span> TaskRepository</div>
+    <div class="methods">
+      <span>addTask · getTask · modifyTask</span><br>
+      <span>removeTask · listTasks</span><br>
+      <span>getRemovedTasks · getActivityLog</span><br>
+      <span>getTagsToTaskIdMapping</span>
+    </div>
+  </div>
+  <div class="box" onclick="showDetail('d-repo')">
+    <div class="box-title"><span class="tag tag-class">class</span> TaskRepositoryImpl</div>
+    <div class="fields">
+      - tasks: ConcurrentHashMap<br>
+      - tagsToTaskIdMapping: ConcurrentHashMap<br>
+      - removedTasks: CopyOnWriteArrayList<br>
+      - activityLog: CopyOnWriteArrayList
+    </div>
+    <div class="methods"><span>addTags · removeTags</span></div>
+  </div>
+</div>
+<div class="arrow-row">
+  <div class="arrow">◁ implements</div>
+  <div class="arrow">▼ stores</div>
+</div>
+
+<!-- Row 4: Models + Enums + Exceptions -->
+<div class="layer">
+  <div class="box model" onclick="showDetail('d-task')">
+    <div class="box-title"><span class="tag tag-class">model</span> Task</div>
+    <div class="fields">
+      - taskId: String (UUID)<br>
+      - details · deadline · createdAt · updatedAt<br>
+      - tags: List&lt;String&gt;<br>
+      - status: TaskStatus
+    </div>
+  </div>
+  <div class="box model" onclick="showDetail('d-activity')">
+    <div class="box-title"><span class="tag tag-class">model</span> Activity</div>
+    <div class="fields">
+      - taskId · taskDetails<br>
+      - type: ActivityType<br>
+      - timestamp: Date
+    </div>
+  </div>
+  <div class="box model" onclick="showDetail('d-stats')">
+    <div class="box-title"><span class="tag tag-class">model</span> TaskStatistics</div>
+    <div class="fields">
+      - added · modified<br>
+      - removed · spilledOverDeadline<br>
+      &nbsp; (all List&lt;Task&gt;)
+    </div>
+  </div>
+  <div class="box enum" onclick="showDetail('d-enum-status')">
+    <div class="box-title"><span class="tag tag-enum">enum</span> TaskStatus</div>
+    <div class="methods">SCHEDULED<br>IN_PROGRESS<br>COMPLETED</div>
+  </div>
+  <div class="box enum" onclick="showDetail('d-enum-act')">
+    <div class="box-title"><span class="tag tag-enum">enum</span> ActivityType</div>
+    <div class="methods">ADDED · MODIFIED<br>REMOVED · COMPLETED</div>
+  </div>
+  <div class="box exception" onclick="showDetail('d-exc')">
+    <div class="box-title"><span class="tag tag-exc">exception</span> Exceptions</div>
+    <div class="methods">InvalidTaskIdException<br>TaskNotFoundException</div>
+  </div>
+</div>
+
+<!-- Data Flow -->
+<div class="flow">
+  <h2>Sequential Data Flow — Complete Task</h2>
+  <div class="flow-steps">
+    <div class="flow-step">1. Driver calls<br><code>completeTask(id)</code></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">2. Service sets status<br>to COMPLETED</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">3. Service calls<br><code>modifyTask</code></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">4. Repo updates task,<br>logs MODIFIED activity</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">5. Service calls<br><code>removeTask</code></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">6. Repo removes from map,<br>cleans tags, logs REMOVED</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">7. Task no longer in<br>active list</div>
+  </div>
+</div>
+
+<!-- Detail Overlay -->
+<div class="detail-overlay" id="overlay" onclick="hideDetail(event)">
+  <div class="detail-card" id="detail-content"></div>
+</div>
+
+<script>
+const details = {
+  'd-app': {
+    title: 'ToDoApplication',
+    body: `<p>Entry point / driver program that demonstrates all features:</p>
+<p>• Adding tasks with deadlines and tags<br>• Listing / filtering by tags<br>• Modifying tasks (details + tags)<br>• Removing tasks<br>• <code>completeTask()</code> — marks complete and auto-removes<br>• Activity log (full + time-filtered)<br>• Statistics (all-time + time-period)</p>`
+  },
+  'd-svc-i': {
+    title: 'TodoService (interface)',
+    body: `<p>Defines the service contract:</p>
+<p><code>addTask · getTask · modifyTask · removeTask · completeTask</code></p>
+<p><code>listTasks()</code> — all, by deadline, by date range, by tags</p>
+<p><code>getStatistics()</code> / <code>getStatistics(start, end)</code></p>
+<p><code>getActivityLog()</code> / <code>getActivityLog(start, end)</code></p>`
+  },
+  'd-svc': {
+    title: 'TodoServiceImpl',
+    body: `<p>Implements <code>TodoService</code>. Delegates storage to <code>TaskRepository</code>.</p>
+<p><strong>completeTask:</strong> Sets status → COMPLETED, calls modifyTask, then removeTask (auto-removal).</p>
+<p><strong>getStatistics(start, end):</strong> Filters activity log by time period, resolves task references, computes spilled-over count.</p>
+<p><strong>getActivityLog(start, end):</strong> Streams activity log filtered by timestamp range.</p>
+<p><strong>listTasks(tags):</strong> Uses tag→taskId mapping to find matching tasks.</p>`
+  },
+  'd-repo-i': {
+    title: 'TaskRepository (interface)',
+    body: `<p>Repository contract for task persistence (in-memory).</p>
+<p><code>addTask · getTask · modifyTask · removeTask · listTasks</code></p>
+<p><code>getRemovedTasks()</code> — returns all previously removed tasks.</p>
+<p><code>getActivityLog()</code> — returns full activity history.</p>
+<p><code>getTagsToTaskIdMapping()</code> — tag index for filtering.</p>`
+  },
+  'd-repo': {
+    title: 'TaskRepositoryImpl',
+    body: `<p>Thread-safe in-memory storage using:</p>
+<p>• <code>ConcurrentHashMap</code> for tasks and tag mappings<br>• <code>CopyOnWriteArrayList</code> for removedTasks and activityLog</p>
+<p>Every mutation (add/modify/remove) records an <code>Activity</code> entry.</p>
+<p>Tag mappings are cleaned up on modify and remove — no stale references.</p>`
+  },
+  'd-task': {
+    title: 'Task (model)',
+    body: `<p>Core entity with UUID-based <code>taskId</code>.</p>
+<p>Fields: <code>details</code>, <code>deadline</code>, <code>createdAt</code>, <code>updatedAt</code>, <code>tags</code> (List), <code>status</code> (TaskStatus enum).</p>
+<p>Multiple constructors: with/without deadline, with/without custom ID.</p>`
+  },
+  'd-activity': {
+    title: 'Activity (model)',
+    body: `<p>Immutable record of a task operation.</p>
+<p>Captures: <code>taskId</code>, <code>taskDetails</code> (snapshot), <code>type</code> (ActivityType), <code>timestamp</code>.</p>
+<p>Created automatically by TaskRepositoryImpl on every add/modify/remove.</p>`
+  },
+  'd-stats': {
+    title: 'TaskStatistics (model)',
+    body: `<p>Holds lists of tasks grouped by category:</p>
+<p>• <code>added</code> — tasks currently active (or added in period)<br>• <code>modified</code> — tasks that were modified<br>• <code>removed</code> — tasks that were removed<br>• <code>spilledOverDeadline</code> — tasks past their deadline</p>`
+  },
+  'd-enum-status': {
+    title: 'TaskStatus (enum)',
+    body: `<p>Three lifecycle states:</p>
+<p><code>SCHEDULED</code> → initial state<br><code>IN_PROGRESS</code> → work started<br><code>COMPLETED</code> → done (triggers auto-removal)</p>`
+  },
+  'd-enum-act': {
+    title: 'ActivityType (enum)',
+    body: `<p>Types of operations logged in the activity trail:</p>
+<p><code>ADDED</code> · <code>MODIFIED</code> · <code>REMOVED</code> · <code>COMPLETED</code></p>`
+  },
+  'd-exc': {
+    title: 'Exceptions',
+    body: `<p><strong>InvalidTaskIdException</strong> — thrown when adding a task with a duplicate ID.</p>
+<p><strong>TaskNotFoundException</strong> — thrown when get/modify/remove targets a nonexistent task.</p>
+<p>Both extend <code>RuntimeException</code> with message constructors.</p>`
+  }
+};
+
+function showDetail(id) {
+  const d = details[id];
+  if (!d) return;
+  document.getElementById('detail-content').innerHTML =
+    '<span class="close" onclick="hideDetail(event)">✕</span><h2>' + d.title + '</h2>' + d.body;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideDetail(e) {
+  if (e.target === document.getElementById('overlay') || e.target.classList.contains('close')) {
+    document.getElementById('overlay').classList.remove('show');
+  }
+}
+</script>
+</body>
+</html>
