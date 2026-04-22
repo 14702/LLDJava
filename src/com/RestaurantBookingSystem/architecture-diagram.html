@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Booking System - Architecture Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; padding: 18px; }
+  h1 { text-align: center; color: #00d4ff; font-size: 1.4rem; margin-bottom: 16px; }
+  .row { display: flex; justify-content: center; gap: 18px; margin-bottom: 10px; flex-wrap: nowrap; width: 100%; }
+  .arrow-row { display: flex; justify-content: center; gap: 40px; margin: 6px 0; }
+  .arrow { color: #00d4ff; font-size: 1.3rem; text-align: center; }
+  .arrow span { display: block; font-size: 0.65rem; color: #999; }
+  .box { background: #16213e; border: 1.5px solid #0f3460; border-radius: 8px; padding: 10px 14px; min-width: 150px; max-width: 260px; flex: 1; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+  .box:hover { border-color: #00d4ff; box-shadow: 0 0 10px rgba(0,212,255,0.2); }
+  .box.active { border-color: #e94560; box-shadow: 0 0 14px rgba(233,69,96,0.3); }
+  .box-title { font-weight: 700; font-size: 0.85rem; color: #00d4ff; margin-bottom: 4px; }
+  .box-type { font-size: 0.6rem; color: #e94560; text-transform: uppercase; margin-bottom: 6px; }
+  .box-fields, .box-methods { font-size: 0.7rem; line-height: 1.5; }
+  .box-fields { color: #a8a8b8; border-bottom: 1px solid #0f3460; padding-bottom: 4px; margin-bottom: 4px; }
+  .box-methods { color: #ccc; }
+  .detail-panel { background: #16213e; border: 1.5px solid #e94560; border-radius: 8px; padding: 14px 18px; margin-top: 14px; display: none; width: 100%; }
+  .detail-panel.visible { display: block; }
+  .detail-panel h3 { color: #e94560; font-size: 0.9rem; margin-bottom: 6px; }
+  .detail-panel p { font-size: 0.75rem; color: #bbb; line-height: 1.6; }
+  .legend { display: flex; gap: 20px; justify-content: center; margin: 14px 0 8px; font-size: 0.65rem; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .section-label { text-align: center; font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 2px; margin: 4px 0; }
+  .flow-row { display: flex; justify-content: center; gap: 14px; margin: 12px 0; flex-wrap: nowrap; width: 100%; }
+  .flow-step { background: #0f3460; border-radius: 20px; padding: 5px 14px; font-size: 0.68rem; color: #00d4ff; border: 1px solid #1a4a8a; white-space: nowrap; }
+  .flow-arrow { color: #555; font-size: 1rem; display: flex; align-items: center; }
+</style>
+</head>
+<body>
+<h1>Restaurant Booking System — Architecture</h1>
+
+<div class="legend">
+  <span><span class="dot" style="background:#00d4ff"></span> Interface</span>
+  <span><span class="dot" style="background:#e94560"></span> Implementation</span>
+  <span><span class="dot" style="background:#a8a8b8"></span> Model / Enum</span>
+</div>
+
+<!-- Row 1: Entry Point -->
+<div class="section-label">Entry Point</div>
+<div class="row">
+  <div class="box" onclick="toggle('main')">
+    <div class="box-type">class</div>
+    <div class="box-title">Main</div>
+    <div class="box-methods">+ main(args)<br>+ testRegister…()<br>+ testSearch…()<br>+ testBookTable…()<br>+ testConcurrent…()</div>
+  </div>
+</div>
+
+<!-- Arrows -->
+<div class="arrow-row">
+  <div class="arrow">▼<span>uses</span></div>
+</div>
+
+<!-- Row 2: Service Interfaces -->
+<div class="section-label">Service Interfaces</div>
+<div class="row">
+  <div class="box" onclick="toggle('rs')">
+    <div class="box-type">interface</div>
+    <div class="box-title">RestaurantService</div>
+    <div class="box-methods">+ registerRestaurant(r)<br>+ updateTimeSlots(id, slots)<br>+ getRestaurant(id)<br>+ getAllRestaurants()</div>
+  </div>
+  <div class="box" onclick="toggle('ss')">
+    <div class="box-type">interface</div>
+    <div class="box-title">SearchService</div>
+    <div class="box-methods">+ search(strategy, criteria)</div>
+  </div>
+  <div class="box" onclick="toggle('bs')">
+    <div class="box-type">interface</div>
+    <div class="box-title">BookingService</div>
+    <div class="box-methods">+ bookTable(userId, restId, …)<br>+ cancelBooking(id)<br>+ getBooking(id)</div>
+  </div>
+</div>
+
+<!-- Arrows -->
+<div class="arrow-row">
+  <div class="arrow">▼<span>implements</span></div>
+</div>
+
+<!-- Row 3: Service Implementations -->
+<div class="section-label">Service Implementations</div>
+<div class="row">
+  <div class="box" onclick="toggle('rsi')">
+    <div class="box-type">class</div>
+    <div class="box-title">RestaurantServiceImpl</div>
+    <div class="box-fields">- restaurants: ConcurrentHashMap</div>
+    <div class="box-methods">+ registerRestaurant(r)<br>+ updateTimeSlots(id, slots)<br>+ getRestaurant(id)</div>
+  </div>
+  <div class="box" onclick="toggle('ssi')">
+    <div class="box-type">class</div>
+    <div class="box-title">SearchServiceImpl</div>
+    <div class="box-fields">- restaurantService</div>
+    <div class="box-methods">+ search(strategy, criteria)</div>
+  </div>
+  <div class="box" onclick="toggle('bsi')">
+    <div class="box-type">class</div>
+    <div class="box-title">BookingServiceImpl</div>
+    <div class="box-fields">- restaurantService<br>- bookings: ConcurrentHashMap<br>- maxFutureDays: int</div>
+    <div class="box-methods">+ bookTable(…) [ReentrantLock]<br>+ cancelBooking(id)<br>+ getBooking(id)</div>
+  </div>
+</div>
+
+<!-- Arrows -->
+<div class="arrow-row">
+  <div class="arrow">▼<span>uses</span></div>
+</div>
+
+<!-- Row 4: Strategy Pattern -->
+<div class="section-label">Search — Strategy Pattern</div>
+<div class="row">
+  <div class="box" onclick="toggle('strat')">
+    <div class="box-type">interface</div>
+    <div class="box-title">SearchStrategy</div>
+    <div class="box-methods">+ search(restaurants, criteria)</div>
+  </div>
+  <div class="box" onclick="toggle('strategies')">
+    <div class="box-type">implementations</div>
+    <div class="box-title">Strategy Variants</div>
+    <div class="box-methods">CitySearchStrategy<br>AreaSearchStrategy<br>CuisineSearchStrategy<br>NameSearchStrategy<br>CostForTwoSearchStrategy<br>FoodTypeSearchStrategy</div>
+  </div>
+</div>
+
+<!-- Arrows -->
+<div class="arrow-row">
+  <div class="arrow">▼<span>operates on</span></div>
+</div>
+
+<!-- Row 5: Models -->
+<div class="section-label">Models</div>
+<div class="row">
+  <div class="box" onclick="toggle('rest')">
+    <div class="box-type">model</div>
+    <div class="box-title">Restaurant</div>
+    <div class="box-fields">id, name, city, area<br>cuisine, foodType, costForTwo<br>tables: List&lt;Table&gt;<br>availableSlotStartTimes<br>bookingLock: ReentrantLock</div>
+  </div>
+  <div class="box" onclick="toggle('table')">
+    <div class="box-type">model</div>
+    <div class="box-title">Table</div>
+    <div class="box-fields">tableId, capacity<br>bookedSlots: Set&lt;TimeSlot&gt;</div>
+    <div class="box-methods">+ isAvailable(slot)<br>+ bookSlot(slot)<br>+ releaseSlot(slot)</div>
+  </div>
+  <div class="box" onclick="toggle('ts')">
+    <div class="box-type">model</div>
+    <div class="box-title">TimeSlot</div>
+    <div class="box-fields">date: LocalDate<br>startTime: LocalTime<br>endTime: LocalTime</div>
+  </div>
+  <div class="box" onclick="toggle('booking')">
+    <div class="box-type">model</div>
+    <div class="box-title">Booking</div>
+    <div class="box-fields">bookingId, userId<br>restaurantId, table<br>timeSlot, numberOfPeople<br>status: BookingStatus</div>
+    <div class="box-methods">+ cancel()</div>
+  </div>
+</div>
+
+<!-- Row 6: Enums & Exceptions -->
+<div class="arrow-row">
+  <div class="arrow">▼<span>uses</span></div>
+</div>
+
+<div class="section-label">Enums & Exceptions</div>
+<div class="row">
+  <div class="box" onclick="toggle('enums')">
+    <div class="box-type">enums</div>
+    <div class="box-title">Cuisine | FoodType | BookingStatus</div>
+    <div class="box-fields">INDIAN, CHINESE, ITALIAN …<br>VEG, NON_VEG, BOTH<br>CONFIRMED, CANCELLED</div>
+  </div>
+  <div class="box" onclick="toggle('exc')">
+    <div class="box-type">exception</div>
+    <div class="box-title">BookingException</div>
+    <div class="box-fields">- errorCode: ErrorCode</div>
+    <div class="box-methods">RESTAURANT_NOT_FOUND<br>SLOT_NOT_AVAILABLE<br>NO_TABLES_AVAILABLE<br>BOOKING_DATE_OUT_OF_RANGE …</div>
+  </div>
+</div>
+
+<!-- Data Flow -->
+<div class="section-label" style="margin-top:18px">Sequential Data Flow</div>
+<div class="flow-row">
+  <div class="flow-step">1. Register Restaurant</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">2. Update Time Slots</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">3. Search (Strategy)</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">4. Book Table (Lock)</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">5. Confirm / Reject</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">6. Cancel (Release)</div>
+</div>
+
+<!-- Detail Panel -->
+<div id="detail" class="detail-panel">
+  <h3 id="detail-title"></h3>
+  <p id="detail-body"></p>
+</div>
+
+<script>
+const details = {
+  main: ["Main", "Entry point that wires up all services and runs test scenarios: registration, search, booking, cancellation, error handling, and concurrency (10 threads racing for 2 tables)."],
+  rs: ["RestaurantService", "Interface for restaurant CRUD. Decoupled from storage — implementation uses ConcurrentHashMap but could be swapped for any persistence layer."],
+  ss: ["SearchService", "Delegates to a SearchStrategy via the Strategy pattern. New search criteria can be added by implementing SearchStrategy — no changes to existing code."],
+  bs: ["BookingService", "Interface for table booking with concurrency guarantees. Validates date range (max m days future), people count, and slot availability."],
+  rsi: ["RestaurantServiceImpl", "Thread-safe restaurant registry using ConcurrentHashMap. putIfAbsent prevents duplicate registrations atomically."],
+  ssi: ["SearchServiceImpl", "Thin orchestrator: fetches all restaurants from RestaurantService, then passes them to the chosen SearchStrategy."],
+  bsi: ["BookingServiceImpl", "Core booking logic. Uses ReentrantLock per restaurant to serialize table allocation — ensures exactly N bookings for N tables under concurrent load. Validates slot existence, date range, and people count before acquiring the lock."],
+  strat: ["SearchStrategy Interface", "Strategy pattern: each search criterion is a separate class implementing search(restaurants, criteria). Chain multiple strategies for compound searches."],
+  strategies: ["Strategy Implementations", "6 built-in strategies: City, Area, Cuisine, Name (partial match), CostForTwo (max budget), FoodType (VEG matches BOTH). Add new ones without modifying existing code — Open/Closed Principle."],
+  rest: ["Restaurant Model", "Core entity with ReentrantLock for booking serialization. Tables and slot times are thread-safe collections (CopyOnWriteArrayList). Slot times are updatable at runtime."],
+  table: ["Table Model", "Each table tracks its own booked TimeSlots using ConcurrentHashMap.newKeySet(). bookSlot/releaseSlot are atomic operations called within the restaurant's lock."],
+  ts: ["TimeSlot Model", "Value object: date + 1-hour window. equals/hashCode on (date, startTime) — used as keys in booking lookups."],
+  booking: ["Booking Model", "Immutable record of a confirmed booking. cancel() updates status and releases the table slot. Status transitions: CONFIRMED → CANCELLED."],
+  enums: ["Enums", "Cuisine (7 types), FoodType (VEG/NON_VEG/BOTH), BookingStatus (CONFIRMED/CANCELLED). Extensible — add new values without breaking existing logic."],
+  exc: ["BookingException + ErrorCode", "Typed error handling. ErrorCode enum maps to user-friendly messages. Thrown for: not found, invalid input, slot conflicts, date range violations."]
+};
+
+function toggle(key) {
+  const panel = document.getElementById('detail');
+  const title = document.getElementById('detail-title');
+  const body = document.getElementById('detail-body');
+  document.querySelectorAll('.box').forEach(b => b.classList.remove('active'));
+  if (panel.classList.contains('visible') && title.textContent === details[key][0]) {
+    panel.classList.remove('visible');
+    return;
+  }
+  event.currentTarget.classList.add('active');
+  title.textContent = details[key][0];
+  body.textContent = details[key][1];
+  panel.classList.add('visible');
+}
+</script>
+</body>
+</html>
