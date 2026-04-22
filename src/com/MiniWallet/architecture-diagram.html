@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiniWallet - Architecture Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #2d3436; color: #dfe6e9; font-family: 'Segoe UI', sans-serif; padding: 18px; }
+  h1 { text-align: center; color: #74b9ff; font-size: 1.4rem; margin-bottom: 16px; }
+  .row { display: flex; justify-content: center; gap: 18px; margin-bottom: 10px; flex-wrap: nowrap; width: 100%; }
+  .arrow-row { display: flex; justify-content: center; gap: 40px; margin: 6px 0; }
+  .arrow { color: #74b9ff; font-size: 1.3rem; text-align: center; }
+  .arrow span { display: block; font-size: 0.65rem; color: #b2bec3; }
+  .box { background: #3d4a4f; border: 1.5px solid #576574; border-radius: 8px; padding: 10px 14px; min-width: 140px; max-width: 280px; flex: 1; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+  .box:hover { border-color: #74b9ff; box-shadow: 0 2px 8px rgba(116,185,255,0.2); }
+  .box.active { border-color: #ff7675; box-shadow: 0 2px 10px rgba(255,118,117,0.2); }
+  .box-title { font-weight: 700; font-size: 0.85rem; color: #74b9ff; margin-bottom: 4px; }
+  .box-type { font-size: 0.6rem; color: #ff7675; text-transform: uppercase; margin-bottom: 6px; }
+  .box-fields, .box-methods { font-size: 0.7rem; line-height: 1.5; }
+  .box-fields { color: #b2bec3; border-bottom: 1px solid #576574; padding-bottom: 4px; margin-bottom: 4px; }
+  .box-methods { color: #dfe6e9; }
+  .detail-panel { background: #3d4a4f; border: 1.5px solid #ff7675; border-radius: 8px; padding: 14px 18px; margin-top: 14px; display: none; width: 100%; }
+  .detail-panel.visible { display: block; }
+  .detail-panel h3 { color: #ff7675; font-size: 0.9rem; margin-bottom: 6px; }
+  .detail-panel p { font-size: 0.75rem; color: #b2bec3; line-height: 1.6; }
+  .legend { display: flex; gap: 20px; justify-content: center; margin: 14px 0 8px; font-size: 0.65rem; }
+  .legend em { display: flex; align-items: center; gap: 5px; font-style: normal; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .section-label { text-align: center; font-size: 0.65rem; color: #636e72; text-transform: uppercase; letter-spacing: 2px; margin: 4px 0; }
+  .flow-row { display: flex; justify-content: center; gap: 14px; margin: 12px 0; flex-wrap: nowrap; width: 100%; }
+  .flow-step { background: #576574; border-radius: 20px; padding: 5px 14px; font-size: 0.68rem; color: #74b9ff; border: 1px solid #636e72; white-space: nowrap; }
+  .flow-arrow { color: #636e72; font-size: 1rem; display: flex; align-items: center; }
+</style>
+</head>
+<body>
+<h1>MiniWallet (PhonePe Prepaid Wallet) — Architecture</h1>
+
+<div class="legend">
+  <em><span class="dot" style="background:#74b9ff"></span> Interface</em>
+  <em><span class="dot" style="background:#ff7675"></span> Implementation</em>
+  <em><span class="dot" style="background:#b2bec3"></span> Model / Enum</em>
+</div>
+
+<!-- Row 1: Entry Point -->
+<div class="section-label">Entry Point</div>
+<div class="row">
+  <div class="box" onclick="toggle('main')">
+    <div class="box-type">class</div>
+    <div class="box-title">Main</div>
+    <div class="box-methods">+ main(args)<br>+ testRegister…()<br>+ testTopUp…()<br>+ testSendMoney…()<br>+ testOffers…()<br>+ testConcurrent…()</div>
+  </div>
+</div>
+
+<div class="arrow-row"><div class="arrow">▼<span>uses</span></div></div>
+
+<!-- Row 2: Service Interfaces -->
+<div class="section-label">Service Interfaces</div>
+<div class="row">
+  <div class="box" onclick="toggle('us')">
+    <div class="box-type">interface</div>
+    <div class="box-title">UserService</div>
+    <div class="box-methods">+ registerUser(id, name, email)<br>+ getUser(id)</div>
+  </div>
+  <div class="box" onclick="toggle('ws')">
+    <div class="box-type">interface</div>
+    <div class="box-title">WalletService</div>
+    <div class="box-methods">+ topUpWallet(userId, amt, src)<br>+ fetchBalance(userId)<br>+ sendMoney(from, to, amt)</div>
+  </div>
+  <div class="box" onclick="toggle('ts')">
+    <div class="box-type">interface</div>
+    <div class="box-title">TransactionService</div>
+    <div class="box-methods">+ addTransaction(txn)<br>+ getTransactions(userId, filter, sorter)</div>
+  </div>
+  <div class="box" onclick="toggle('os')">
+    <div class="box-type">interface</div>
+    <div class="box-title">OfferService</div>
+    <div class="box-methods">+ registerOffer(offer)<br>+ applyOffers(txn, sender, rcvr)</div>
+  </div>
+</div>
+
+<div class="arrow-row"><div class="arrow">▼<span>implements</span></div></div>
+
+<!-- Row 3: Service Implementations -->
+<div class="section-label">Service Implementations</div>
+<div class="row">
+  <div class="box" onclick="toggle('usi')">
+    <div class="box-type">class</div>
+    <div class="box-title">UserServiceImpl</div>
+    <div class="box-fields">- users: ConcurrentHashMap<br>- wallets: ConcurrentHashMap</div>
+    <div class="box-methods">+ registerUser(…)<br>+ getWallet(userId)</div>
+  </div>
+  <div class="box" onclick="toggle('wsi')">
+    <div class="box-type">class</div>
+    <div class="box-title">WalletServiceImpl</div>
+    <div class="box-fields">- userService, txnService<br>- offerService</div>
+    <div class="box-methods">+ topUpWallet(…)<br>+ sendMoney(…) [ordered locks]<br>+ fetchBalance(…)</div>
+  </div>
+  <div class="box" onclick="toggle('tsi')">
+    <div class="box-type">class</div>
+    <div class="box-title">TransactionServiceImpl</div>
+    <div class="box-fields">- userTxns: ConcurrentHashMap<br>&nbsp;&nbsp;→ CopyOnWriteArrayList</div>
+    <div class="box-methods">+ addTransaction(…)<br>+ getTransactions(…)</div>
+  </div>
+  <div class="box" onclick="toggle('osi')">
+    <div class="box-type">class</div>
+    <div class="box-title">OfferServiceImpl</div>
+    <div class="box-fields">- offers: CopyOnWriteArrayList</div>
+    <div class="box-methods">+ registerOffer(…)<br>+ applyOffers(…)</div>
+  </div>
+</div>
+
+<div class="arrow-row"><div class="arrow">▼<span>uses</span></div></div>
+
+<!-- Row 4: Strategy Interfaces -->
+<div class="section-label">Strategy Patterns — Offers, Filters, Sorters</div>
+<div class="row">
+  <div class="box" onclick="toggle('offer')">
+    <div class="box-type">interface</div>
+    <div class="box-title">Offer</div>
+    <div class="box-methods">+ isEligible(txn, sW, rW)<br>+ calculateCashback(…)<br>+ getName()</div>
+  </div>
+  <div class="box" onclick="toggle('offers')">
+    <div class="box-type">implementations</div>
+    <div class="box-title">Offer Variants</div>
+    <div class="box-methods">FirstTransactionOffer<br>EqualBalanceOffer</div>
+  </div>
+  <div class="box" onclick="toggle('filter')">
+    <div class="box-type">interface</div>
+    <div class="box-title">TransactionFilter</div>
+    <div class="box-methods">+ filter(transactions)</div>
+  </div>
+  <div class="box" onclick="toggle('filters')">
+    <div class="box-type">implementations</div>
+    <div class="box-title">Filter Variants</div>
+    <div class="box-methods">UserFilter<br>TransactionTypeFilter</div>
+  </div>
+  <div class="box" onclick="toggle('sorter')">
+    <div class="box-type">interface</div>
+    <div class="box-title">TransactionSorter</div>
+    <div class="box-methods">+ sort(transactions)</div>
+  </div>
+  <div class="box" onclick="toggle('sorters')">
+    <div class="box-type">implementations</div>
+    <div class="box-title">Sorter Variants</div>
+    <div class="box-methods">DateSorter(asc/desc)<br>AmountSorter(asc/desc)</div>
+  </div>
+</div>
+
+<div class="arrow-row"><div class="arrow">▼<span>operates on</span></div></div>
+
+<!-- Row 5: Models -->
+<div class="section-label">Models</div>
+<div class="row">
+  <div class="box" onclick="toggle('user')">
+    <div class="box-type">model</div>
+    <div class="box-title">User</div>
+    <div class="box-fields">userId, name, email</div>
+  </div>
+  <div class="box" onclick="toggle('wallet')">
+    <div class="box-type">model</div>
+    <div class="box-title">Wallet</div>
+    <div class="box-fields">userId, balance<br>lock: ReentrantLock</div>
+    <div class="box-methods">+ credit(amt) / debit(amt)<br>+ getBalance()</div>
+  </div>
+  <div class="box" onclick="toggle('txn')">
+    <div class="box-type">model</div>
+    <div class="box-title">Transaction</div>
+    <div class="box-fields">transactionId, senderId<br>receiverId, amount<br>type, timestamp, cashback</div>
+    <div class="box-methods">+ addCashback(amt)</div>
+  </div>
+</div>
+
+<!-- Row 6: Enums & Exceptions -->
+<div class="arrow-row"><div class="arrow">▼<span>uses</span></div></div>
+
+<div class="section-label">Enums & Exceptions</div>
+<div class="row">
+  <div class="box" onclick="toggle('enums')">
+    <div class="box-type">enums</div>
+    <div class="box-title">TransactionType | PaymentSource</div>
+    <div class="box-fields">TOP_UP, SEND, RECEIVE, CASHBACK<br>CREDIT_CARD, DEBIT_CARD, UPI, NET_BANKING</div>
+  </div>
+  <div class="box" onclick="toggle('exc')">
+    <div class="box-type">exception</div>
+    <div class="box-title">WalletException</div>
+    <div class="box-fields">- errorCode: ErrorCode</div>
+    <div class="box-methods">USER_NOT_FOUND<br>INSUFFICIENT_BALANCE<br>INVALID_AMOUNT<br>SELF_TRANSFER …</div>
+  </div>
+</div>
+
+<!-- Data Flow -->
+<div class="section-label" style="margin-top:18px">Sequential Data Flow</div>
+<div class="flow-row">
+  <div class="flow-step">1. Register User</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">2. Top Up (CC/DC/UPI)</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">3. Send Money [Lock]</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">4. Apply Offers</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">5. Record Txn</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">6. Filter/Sort History</div>
+</div>
+
+<!-- Detail Panel -->
+<div id="detail" class="detail-panel">
+  <h3 id="detail-title"></h3>
+  <p id="detail-body"></p>
+</div>
+
+<script>
+const details = {
+  main: ["Main", "Entry point wiring all services. Tests: user registration, top-up, send money, both offers (first-transaction 10%, equal-balance 5%), transaction history with filters/sorters, error scenarios, and concurrent 20-thread transfer stress test."],
+  us: ["UserService", "Interface for user registration and lookup. Decoupled from storage — implementation uses ConcurrentHashMap."],
+  ws: ["WalletService", "Core wallet operations: top-up from external sources, balance inquiry, and P2P transfers with automatic offer evaluation."],
+  ts: ["TransactionService", "Transaction storage and retrieval. Supports pluggable filters and sorters via Strategy pattern — new criteria can be added without modifying this interface."],
+  os: ["OfferService", "Offer registry and evaluation engine. Iterates all registered offers for each transaction, applying eligible cashbacks. New offers plug in via the Offer interface."],
+  usi: ["UserServiceImpl", "Thread-safe user registry. putIfAbsent prevents duplicate registrations. Each user gets a Wallet created atomically at registration time."],
+  wsi: ["WalletServiceImpl", "Central orchestrator for money movement. sendMoney() acquires locks in consistent order (alphabetical userId) to prevent deadlocks. After debit/credit, evaluates offers and credits cashback as a separate CASHBACK transaction."],
+  tsi: ["TransactionServiceImpl", "Stores transactions per-user using ConcurrentHashMap of CopyOnWriteArrayList. Each transaction is indexed under both sender and receiver for O(1) user lookups."],
+  osi: ["OfferServiceImpl", "Iterates CopyOnWriteArrayList of Offer implementations. Thread-safe — new offers can be registered while transactions are being processed."],
+  offer: ["Offer Interface", "Strategy pattern for cashback offers. isEligible() checks criteria, calculateCashback() returns the amount. Each offer is self-contained and stateful if needed."],
+  offers: ["Offer Implementations", "FirstTransactionOffer: tracks claimed users in ConcurrentHashMap.newKeySet(), gives 10% on first send > ₹100. EqualBalanceOffer: checks post-transfer balance equality, gives 5%."],
+  filter: ["TransactionFilter Interface", "Strategy for filtering transaction lists. filter() takes a list and returns a filtered copy — composable and stateless."],
+  filters: ["Filter Implementations", "UserFilter: keeps transactions involving a specific userId (sender or receiver). TransactionTypeFilter: keeps only transactions of a specific type (SEND, TOP_UP, etc)."],
+  sorter: ["TransactionSorter Interface", "Strategy for sorting transaction lists. sort() returns a new sorted list — original is untouched. Each sorter supports ascending/descending via constructor parameter."],
+  sorters: ["Sorter Implementations", "DateSorter: sorts by timestamp. AmountSorter: sorts by transaction amount. Both accept boolean ascending flag for direction control."],
+  user: ["User Model", "Immutable value object: userId, name, email. Created at registration, never mutated."],
+  wallet: ["Wallet Model", "Thread-safe balance container. ReentrantLock protects credit/debit operations. WalletServiceImpl acquires locks in consistent order across two wallets to prevent deadlocks during transfers."],
+  txn: ["Transaction Model", "Records a single money movement. Tracks sender, receiver, amount, type, timestamp, and accumulated cashback. addCashback() allows multiple offers to stack."],
+  enums: ["Enums", "TransactionType: TOP_UP, SEND, RECEIVE, CASHBACK — extensible for future types. PaymentSource: CREDIT_CARD, DEBIT_CARD, UPI, NET_BANKING — used for top-up provenance tracking."],
+  exc: ["WalletException + ErrorCode", "Typed error handling. ErrorCode enum provides consistent messages: USER_NOT_FOUND, INSUFFICIENT_BALANCE, INVALID_AMOUNT, SELF_TRANSFER, USER_ALREADY_EXISTS."]
+};
+
+function toggle(key) {
+  const panel = document.getElementById('detail');
+  const title = document.getElementById('detail-title');
+  const body = document.getElementById('detail-body');
+  document.querySelectorAll('.box').forEach(b => b.classList.remove('active'));
+  if (panel.classList.contains('visible') && title.textContent === details[key][0]) {
+    panel.classList.remove('visible');
+    return;
+  }
+  event.currentTarget.classList.add('active');
+  title.textContent = details[key][0];
+  body.textContent = details[key][1];
+  panel.classList.add('visible');
+}
+</script>
+</body>
+</html>

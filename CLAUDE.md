@@ -31,3 +31,4 @@
 - Keep it clean — easy to read at a glance, not cluttered
 - Build the diagram at the very end, after all code is done and tested
 - Place the diagram as `architecture-diagram.html` in the project's root package directory
+- Use a **slight dark theme** (soft dark-gray background like #2d3436, not pitch black) — muted, easy on the eyes
