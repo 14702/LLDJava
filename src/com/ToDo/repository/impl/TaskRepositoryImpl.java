@@ -1,4 +1,4 @@
-package com.ToDo.repository;
+package com.ToDo.repository.impl;
 
 import com.ToDo.enums.ActivityType;
 import com.ToDo.model.Activity;

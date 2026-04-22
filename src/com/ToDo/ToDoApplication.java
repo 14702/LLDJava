@@ -1,9 +1,9 @@
 package com.ToDo;
 
 import com.ToDo.repository.interfaces.TaskRepository;
-import com.ToDo.repository.TaskRepositoryImpl;
+import com.ToDo.repository.impl.TaskRepositoryImpl;
 import com.ToDo.service.interfaces.TodoService;
-import com.ToDo.service.TodoServiceImpl;
+import com.ToDo.service.impl.TodoServiceImpl;
 import com.ToDo.model.Activity;
 import com.ToDo.model.Task;
 import com.ToDo.model.TaskStatistics;

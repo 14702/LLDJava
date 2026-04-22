@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Level Cache — Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #2d3436; color: #dfe6e9; font-family: 'Segoe UI', system-ui, sans-serif; padding: 18px; min-height: 100vh; }
+  h1 { text-align: center; font-size: 1.35rem; font-weight: 600; color: #74b9ff; margin-bottom: 14px; letter-spacing: .5px; }
+  .layer { display: flex; justify-content: center; gap: 14px; flex-wrap: nowrap; margin-bottom: 6px; width: 100%; }
+  .box { background: #3d4a4f; border: 1.5px solid #636e72; border-radius: 8px; padding: 9px 12px; min-width: 120px; max-width: 260px; flex: 1; cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+  .box:hover { border-color: #74b9ff; box-shadow: 0 0 8px rgba(116,185,255,.25); }
+  .box.iface { border-color: #a29bfe; }
+  .box.model { border-color: #55efc4; }
+  .box.factory { border-color: #fdcb6e; }
+  .box-title { font-weight: 700; font-size: .82rem; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+  .tag { font-size: .58rem; padding: 1px 5px; border-radius: 3px; font-weight: 500; }
+  .tag-iface { background: #6c5ce7; color: #fff; }
+  .tag-class { background: #00b894; color: #fff; }
+  .tag-factory { background: #fdcb6e; color: #2d3436; }
+  .fields, .methods { font-size: .7rem; color: #b2bec3; line-height: 1.5; }
+  .fields { border-bottom: 1px solid #636e72; padding-bottom: 3px; margin-bottom: 3px; }
+  .methods span { color: #81ecec; }
+  .arrow-row { display: flex; justify-content: center; gap: 14px; width: 100%; margin: 2px 0; }
+  .arrow { text-align: center; flex: 1; max-width: 260px; min-width: 120px; color: #636e72; font-size: 1rem; line-height: 1; }
+  .flow { width: 100%; margin-top: 16px; }
+  .flow h2 { text-align: center; font-size: .95rem; color: #74b9ff; margin-bottom: 8px; }
+  .flow-steps { display: flex; justify-content: center; align-items: center; gap: 0; width: 100%; flex-wrap: nowrap; }
+  .flow-step { background: #3d4a4f; border: 1.5px solid #636e72; border-radius: 8px; padding: 7px 10px; font-size: .7rem; text-align: center; flex: 1; min-width: 0; }
+  .flow-arrow { color: #74b9ff; font-size: 1rem; padding: 0 3px; flex-shrink: 0; }
+  .legend { display: flex; justify-content: center; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: .68rem; }
+  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; border: 1.5px solid; }
+  .detail-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.6); z-index: 10; justify-content: center; align-items: center; }
+  .detail-overlay.show { display: flex; }
+  .detail-card { background: #3d4a4f; border: 1.5px solid #74b9ff; border-radius: 10px; padding: 20px 26px; max-width: 520px; width: 90%; max-height: 80vh; overflow-y: auto; }
+  .detail-card h2 { color: #74b9ff; font-size: 1rem; margin-bottom: 8px; }
+  .detail-card p { font-size: .8rem; line-height: 1.6; color: #dfe6e9; margin-bottom: 7px; }
+  .detail-card .close { float: right; cursor: pointer; color: #ff7675; font-weight: 700; font-size: 1.1rem; }
+  .detail-card code { background: #2d3436; padding: 1px 5px; border-radius: 3px; font-size: .76rem; color: #81ecec; }
+  .patterns { width: 100%; margin-top: 16px; }
+  .patterns h2 { text-align: center; font-size: .95rem; color: #74b9ff; margin-bottom: 8px; }
+  .pattern-grid { display: flex; justify-content: center; gap: 14px; flex-wrap: nowrap; }
+  .pattern-card { background: #3d4a4f; border: 1.5px solid #636e72; border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 0; }
+  .pattern-card h3 { font-size: .78rem; color: #fdcb6e; margin-bottom: 4px; }
+  .pattern-card p { font-size: .68rem; color: #b2bec3; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<h1>Multi-Level Cache System — Architecture Diagram</h1>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:#6c5ce7;border-color:#a29bfe;"></div> Interface</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#00b894;border-color:#55efc4;"></div> Implementation</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fdcb6e;border-color:#fdcb6e;"></div> Factory</div>
+</div>
+
+<!-- Row 1: Driver + Factory -->
+<div class="layer">
+  <div class="box" onclick="showDetail('d-app')">
+    <div class="box-title"><span class="tag tag-class">class</span> MultiLevelCacheApplication</div>
+    <div class="fields">— driver / test harness</div>
+    <div class="methods"><span>main(args)</span></div>
+  </div>
+  <div class="box factory" onclick="showDetail('d-factory')">
+    <div class="box-title"><span class="tag tag-factory">factory</span> CacheLevelFactory</div>
+    <div class="methods">
+      <span>create(level, cap, rTime, wTime)</span><br>
+      <span>create(…, evictionPolicy)</span>
+    </div>
+  </div>
+</div>
+<div class="arrow-row">
+  <div class="arrow">▼ uses</div>
+  <div class="arrow">▼ creates</div>
+</div>
+
+<!-- Row 2: Service -->
+<div class="layer">
+  <div class="box iface" onclick="showDetail('d-svc-i')">
+    <div class="box-title"><span class="tag tag-iface">interface</span> CacheService</div>
+    <div class="methods">
+      <span>read(key) · write(key, val)</span><br>
+      <span>addLevel(level) · removeLevel(n)</span><br>
+      <span>stat()</span>
+    </div>
+  </div>
+  <div class="box" onclick="showDetail('d-svc')">
+    <div class="box-title"><span class="tag tag-class">impl</span> MultiLevelCacheService</div>
+    <div class="fields">
+      - levels: CopyOnWriteArrayList&lt;CacheLevel&gt;<br>
+      - statsTracker: StatsTracker
+    </div>
+    <div class="methods">
+      <span>read · write · addLevel · removeLevel</span>
+    </div>
+  </div>
+</div>
+<div class="arrow-row">
+  <div class="arrow">◁ implements</div>
+  <div class="arrow">▼ depends on (DIP)</div>
+</div>
+
+<!-- Row 3: CacheLevel + StatsTracker + EvictionPolicy interfaces -->
+<div class="layer">
+  <div class="box iface" onclick="showDetail('d-cl-i')">
+    <div class="box-title"><span class="tag tag-iface">interface</span> CacheLevel</div>
+    <div class="methods">
+      <span>read(key) · write(key, val)</span><br>
+      <span>getLevel · getCapacity</span><br>
+      <span>getReadTime · getWriteTime · getUsage</span>
+    </div>
+  </div>
+  <div class="box iface" onclick="showDetail('d-stats-i')">
+    <div class="box-title"><span class="tag tag-iface">interface</span> StatsTracker</div>
+    <div class="methods">
+      <span>recordReadTime(t) · recordWriteTime(t)</span><br>
+      <span>getAvgReadTime · getAvgWriteTime</span>
+    </div>
+  </div>
+  <div class="box iface" onclick="showDetail('d-evict-i')">
+    <div class="box-title"><span class="tag tag-iface">interface</span> EvictionPolicy</div>
+    <div class="methods">
+      <span>keyAccessed(key)</span><br>
+      <span>evict() → key</span><br>
+      <span>remove(key)</span>
+    </div>
+  </div>
+</div>
+<div class="arrow-row">
+  <div class="arrow">△ implements</div>
+  <div class="arrow">△ implements</div>
+  <div class="arrow">△ implements</div>
+</div>
+
+<!-- Row 4: Concrete implementations -->
+<div class="layer">
+  <div class="box model" onclick="showDetail('d-cl')">
+    <div class="box-title"><span class="tag tag-class">impl</span> CacheLevelImpl</div>
+    <div class="fields">
+      - store: ConcurrentHashMap<br>
+      - evictionPolicy: EvictionPolicy<br>
+      - lock: ReentrantLock
+    </div>
+  </div>
+  <div class="box model" onclick="showDetail('d-stats')">
+    <div class="box-title"><span class="tag tag-class">impl</span> SlidingWindowStatsTracker</div>
+    <div class="fields">
+      - windowSize: int<br>
+      - readTimes / writeTimes: LinkedList
+    </div>
+  </div>
+  <div class="box model" onclick="showDetail('d-lru')">
+    <div class="box-title"><span class="tag tag-class">impl</span> LRUEvictionPolicy</div>
+    <div class="fields">- order: LinkedHashSet</div>
+  </div>
+</div>
+<div class="arrow-row">
+  <div class="arrow">▼ returns</div>
+  <div class="arrow"></div>
+  <div class="arrow"></div>
+</div>
+
+<!-- Row 5: Result models -->
+<div class="layer">
+  <div class="box model" onclick="showDetail('d-rr')">
+    <div class="box-title"><span class="tag tag-class">model</span> ReadResult</div>
+    <div class="fields">- value: String · totalTime: int</div>
+  </div>
+  <div class="box model" onclick="showDetail('d-wr')">
+    <div class="box-title"><span class="tag tag-class">model</span> WriteResult</div>
+    <div class="fields">- totalTime: int</div>
+  </div>
+</div>
+
+<!-- Design Patterns -->
+<div class="patterns">
+  <h2>Design Patterns &amp; SOLID Principles Applied</h2>
+  <div class="pattern-grid">
+    <div class="pattern-card">
+      <h3>Strategy Pattern</h3>
+      <p><code>EvictionPolicy</code> interface → swap LRU for LFU, FIFO, TTL without touching CacheLevelImpl</p>
+    </div>
+    <div class="pattern-card">
+      <h3>Factory Pattern</h3>
+      <p><code>CacheLevelFactory</code> centralizes level creation with sensible defaults (LRU)</p>
+    </div>
+    <div class="pattern-card">
+      <h3>Dependency Inversion</h3>
+      <p>Service depends on <code>CacheLevel</code>, <code>StatsTracker</code>, <code>EvictionPolicy</code> interfaces — never concrete classes</p>
+    </div>
+    <div class="pattern-card">
+      <h3>Single Responsibility</h3>
+      <p>Stats tracking extracted to <code>StatsTracker</code>. Cache logic stays in service. Storage in CacheLevel.</p>
+    </div>
+    <div class="pattern-card">
+      <h3>Open/Closed</h3>
+      <p>New eviction, stats, or cache level types plug in via interfaces — no core code changes needed</p>
+    </div>
+  </div>
+</div>
+
+<!-- Data Flow: READ -->
+<div class="flow">
+  <h2>Data Flow — READ Operation</h2>
+  <div class="flow-steps">
+    <div class="flow-step">1. Start at L1<br><code>read(key)</code></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">2. Key found?<br>Yes → return</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">3. No → cascade<br>to L2 … LN</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">4. Found at Li →<br>write-back L1…L(i-1)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">5. StatsTracker<br>records time</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">6. Return<br>ReadResult</div>
+  </div>
+</div>
+
+<div class="flow" style="margin-top:10px;">
+  <h2>Data Flow — WRITE Operation</h2>
+  <div class="flow-steps">
+    <div class="flow-step">1. Start at L1<br><code>write(key, val)</code></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">2. Read level:<br>same value? → stop</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">3. Write &amp; cascade<br>to next level</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">4. If full →<br>evict via Policy</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">5. StatsTracker<br>records time</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">6. Return<br>WriteResult</div>
+  </div>
+</div>
+
+<!-- Detail overlay -->
+<div class="detail-overlay" id="overlay" onclick="hideDetail(event)">
+  <div class="detail-card" id="detail-content"></div>
+</div>
+
+<script>
+const details = {
+  'd-app': {
+    title: 'MultiLevelCacheApplication',
+    body: `<p>Driver program that uses <code>CacheLevelFactory</code> to create levels and demonstrates:</p>
+<p>• WRITE/READ with time calculations<br>• Early stop, LRU eviction, write-back<br>• <strong>Dynamic scaling</strong>: addLevel/removeLevel at runtime<br>• STAT with sliding window averages</p>`
+  },
+  'd-factory': {
+    title: 'CacheLevelFactory',
+    body: `<p><strong>Factory Pattern</strong> — centralizes <code>CacheLevel</code> creation.</p>
+<p><code>create(level, cap, rTime, wTime)</code> — defaults to LRU eviction<br>
+<code>create(…, evictionPolicy)</code> — custom eviction strategy</p>
+<p>Callers never reference <code>CacheLevelImpl</code> directly.</p>`
+  },
+  'd-svc-i': {
+    title: 'CacheService (interface)',
+    body: `<p>Core contract for the multi-level cache:</p>
+<p><code>read(key)</code> · <code>write(key, value)</code> — data operations<br>
+<code>addLevel(level)</code> · <code>removeLevel(n)</code> — dynamic scaling<br>
+<code>stat()</code> — usage and averages</p>`
+  },
+  'd-svc': {
+    title: 'MultiLevelCacheService',
+    body: `<p>Orchestrates the N-level cascade logic. Depends only on interfaces (<strong>Dependency Inversion</strong>):</p>
+<p>• <code>CacheLevel</code> interface — not CacheLevelImpl<br>
+• <code>StatsTracker</code> interface — not SlidingWindowStatsTracker</p>
+<p>Uses <code>CopyOnWriteArrayList</code> for thread-safe dynamic level add/remove.</p>
+<p><strong>read:</strong> cascades down, writes back up, records stats<br>
+<strong>write:</strong> cascades down with early stop, records stats</p>`
+  },
+  'd-cl-i': {
+    title: 'CacheLevel (interface)',
+    body: `<p><strong>Dependency Inversion</strong> — service depends on this abstraction, not on CacheLevelImpl.</p>
+<p>Any class implementing this can serve as a cache level (e.g., TTL-based, distributed, etc.).</p>
+<p>Methods: <code>read</code>, <code>write</code>, <code>getLevel</code>, <code>getCapacity</code>, <code>getReadTime</code>, <code>getWriteTime</code>, <code>getUsage</code></p>`
+  },
+  'd-stats-i': {
+    title: 'StatsTracker (interface)',
+    body: `<p><strong>Single Responsibility</strong> — stats tracking extracted from the cache service.</p>
+<p><code>recordReadTime(t)</code> · <code>recordWriteTime(t)</code> — record operation times<br>
+<code>getAvgReadTime()</code> · <code>getAvgWriteTime()</code> — retrieve averages</p>
+<p>Swap SlidingWindow for Exponential, Percentile, etc. via <strong>Open/Closed</strong>.</p>`
+  },
+  'd-evict-i': {
+    title: 'EvictionPolicy (interface)',
+    body: `<p><strong>Strategy Pattern</strong> — pluggable eviction algorithms.</p>
+<p><code>keyAccessed(key)</code> — track access order<br>
+<code>evict()</code> — remove and return the victim key<br>
+<code>remove(key)</code> — explicit removal from tracking</p>
+<p>LRU is the default; swap to LFU, FIFO, Random without modifying CacheLevelImpl.</p>`
+  },
+  'd-cl': {
+    title: 'CacheLevelImpl',
+    body: `<p>Thread-safe implementation using:</p>
+<p>• <code>ConcurrentHashMap</code> for key-value storage<br>
+• <code>ReentrantLock</code> for atomic read-check-evict-write sequences<br>
+• Delegates eviction decisions to <code>EvictionPolicy</code> (Strategy Pattern)</p>`
+  },
+  'd-stats': {
+    title: 'SlidingWindowStatsTracker',
+    body: `<p>Tracks the last N operation times using <code>LinkedList</code> as a sliding window.</p>
+<p>Thread-safe via <code>synchronized</code> methods.<br>
+Window size is configurable (default: 10).</p>`
+  },
+  'd-lru': {
+    title: 'LRUEvictionPolicy',
+    body: `<p>Least Recently Used via <code>LinkedHashSet</code>.</p>
+<p>On access: remove + re-add to end (most recent).<br>
+On evict: remove from front (least recent).<br>
+All operations O(1).</p>`
+  },
+  'd-rr': {
+    title: 'ReadResult',
+    body: `<p>Immutable result: <code>value</code> (null if not found) + <code>totalTime</code>.</p>`
+  },
+  'd-wr': {
+    title: 'WriteResult',
+    body: `<p>Immutable result: <code>totalTime</code> across all levels touched.</p>`
+  }
+};
+
+function showDetail(id) {
+  const d = details[id];
+  if (!d) return;
+  document.getElementById('detail-content').innerHTML =
+    '<span class="close" onclick="hideDetail(event)">✕</span><h2>' + d.title + '</h2>' + d.body;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideDetail(e) {
+  if (e.target === document.getElementById('overlay') || e.target.classList.contains('close'))
+    document.getElementById('overlay').classList.remove('show');
+}
+</script>
+</body>
+</html>
