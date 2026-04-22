@@ -25,4 +25,8 @@
 - Don't over-engineer — keep implementations concise
 
 ## Documentation
-- Create an interactive HTML architecture diagram for each LLD project explaining classes and their interactions
+- After implementation is complete, create an interactive HTML architecture diagram for each LLD project
+- Diagram should be UML-style class diagram: simple and intuitive to understand
+- Show classes with fields and methods, relationships (implements, uses, has-a), and a sequential data flow
+- Keep it clean — easy to read at a glance, not cluttered
+- Build the diagram at the very end, after all code is done and tested
