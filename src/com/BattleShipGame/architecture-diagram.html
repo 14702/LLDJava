@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BattleShip Game — Class Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Consolas, monospace; background: #0f172a; color: #e2e8f0; padding: 18px 28px; }
+  h1 { text-align: center; font-size: 1.5rem; color: #38bdf8; margin-bottom: 4px; }
+  .sub { text-align: center; color: #94a3b8; font-size: 0.82rem; margin-bottom: 18px; }
+  .container { width: 100%; margin: 0 auto; }
+
+  .uml { background: #1e293b; border: 2px solid #334155; border-radius: 8px; min-width: 220px; max-width: 280px; flex: 1; cursor: pointer; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+  .uml:hover { border-color: #60a5fa; box-shadow: 0 4px 16px rgba(56,189,248,0.15); }
+  .uml.active { border-color: #facc15; box-shadow: 0 0 16px rgba(250,204,21,0.2); }
+  .uml.intf { border-style: dashed; }
+  .uml-h { padding: 8px 12px; text-align: center; border-bottom: 1px solid #334155; }
+  .uml-h .st { font-size: 0.65rem; color: #94a3b8; }
+  .uml-h .nm { font-weight: 700; font-size: 0.9rem; color: #f1f5f9; }
+  .uml-s { padding: 6px 12px; border-bottom: 1px solid #334155; font-size: 0.73rem; line-height: 1.55; }
+  .uml-s:last-child { border-bottom: none; }
+  .f { color: #86efac; } .m { color: #93c5fd; } .a { color: #fbbf24; margin-right: 3px; }
+
+  .diagram { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+  .row { display: flex; justify-content: center; gap: 20px; flex-wrap: nowrap; }
+  .rel { display: flex; flex-direction: column; align-items: center; }
+  .rel .line { width: 2px; height: 10px; background: #475569; }
+  .rel .lbl { font-size: 0.65rem; color: #94a3b8; background: #0f172a; padding: 1px 6px; border-radius: 4px; }
+  .rel .arr { color: #64748b; font-size: 1.2rem; line-height: 1; }
+  .layer { display: flex; align-items: center; gap: 14px; }
+  .layer-label { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; padding: 8px 4px; border-radius: 6px; text-align: center; min-height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .layer-label.enums { background: #164e63; color: #67e8f9; }
+  .layer-label.model { background: #14532d; color: #86efac; }
+  .layer-label.strat { background: #422006; color: #fbbf24; }
+  .layer-label.svc { background: #1e3a5f; color: #7dd3fc; }
+  .layer-label.entry { background: #3b0764; color: #d8b4fe; }
+  .layer-content { display: flex; gap: 20px; flex: 1; justify-content: center; }
+
+  .detail { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 16px 22px; margin-top: 16px; min-height: 70px; }
+  .detail h2 { color: #38bdf8; font-size: 1.05rem; margin-bottom: 4px; }
+  .detail .pk { color: #64748b; font-size: 0.72rem; margin-bottom: 8px; }
+  .detail p { color: #cbd5e1; font-size: 0.85rem; line-height: 1.65; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 16px; font-size: 0.65rem; margin-right: 4px; margin-top: 6px; }
+  .tag.strategy { background: #422006; color: #fbbf24; }
+  .tag.enum { background: #164e63; color: #67e8f9; }
+  .tag.model { background: #14532d; color: #86efac; }
+  .tag.service { background: #1e3a5f; color: #7dd3fc; }
+  .tag.concurrency { background: #3b0764; color: #d8b4fe; }
+
+  .flow { margin-top: 16px; background: #1e293b; border-radius: 10px; padding: 16px 22px; border: 1px solid #334155; }
+  .flow h2 { color: #38bdf8; margin-bottom: 10px; font-size: 1.05rem; }
+  .steps { display: flex; align-items: flex-start; gap: 0; flex-wrap: nowrap; justify-content: center; }
+  .step { display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 100px; padding: 4px 2px; }
+  .step .c { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; }
+  .step .n { font-weight: 700; color: #e2e8f0; font-size: 0.75rem; }
+  .step .d { font-size: 0.68rem; color: #94a3b8; line-height: 1.35; }
+  .sa { display: flex; align-items: center; padding-top: 12px; color: #475569; font-size: 1.3rem; }
+  .c1 .c { background: #1e3a5f; color: #7dd3fc; }
+  .c2 .c { background: #365314; color: #86efac; }
+  .c3 .c { background: #581c87; color: #d8b4fe; }
+  .c4 .c { background: #7c2d12; color: #fdba74; }
+  .c5 .c { background: #155e75; color: #67e8f9; }
+  .c6 .c { background: #92400e; color: #fbbf24; }
+  .c7 .c { background: #14532d; color: #86efac; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>BattleShip Game — Class Diagram</h1>
+<p class="sub">Click any class to see details. Dashed = interface.</p>
+
+<div class="diagram">
+
+  <!-- Layer 1: Enum -->
+  <div class="layer">
+    <div class="layer-label enums">Enums</div>
+    <div class="layer-content">
+      <div class="uml" onclick="sel('cellstatus')">
+        <div class="uml-h"><div class="st">&laquo;enum&raquo;</div><div class="nm">CellStatus</div></div>
+        <div class="uml-s"><span class="f">EMPTY, SHIP, HIT, MISS</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">used by</div><div class="arr">&#9660;</div></div>
+
+  <!-- Layer 2: Model -->
+  <div class="layer">
+    <div class="layer-label model">Model</div>
+    <div class="layer-content">
+      <div class="uml" onclick="sel('ship')">
+        <div class="uml-h"><div class="st">&laquo;class&raquo;</div><div class="nm">Ship</div></div>
+        <div class="uml-s"><span class="a">-</span><span class="f">id, player, startX, startY, size</span><br><span class="a">-</span><span class="f">destroyed : volatile boolean</span></div>
+        <div class="uml-s"><span class="a">+</span><span class="m">getters(), setDestroyed()</span></div>
+      </div>
+      <div class="uml" onclick="sel('board')">
+        <div class="uml-h"><div class="st">&laquo;class&raquo;</div><div class="nm">Board</div></div>
+        <div class="uml-s"><span class="a">-</span><span class="f">grid : CellStatus[][]</span><br><span class="a">-</span><span class="f">shipMap : ConcurrentHashMap</span><br><span class="a">-</span><span class="f">shipHitCount : ConcurrentHashMap</span><br><span class="a">-</span><span class="f">lock : ReentrantLock</span></div>
+        <div class="uml-s"><span class="a">+</span><span class="m">placeShip(Ship) : boolean</span><br><span class="a">+</span><span class="m">shoot(x, y) : String</span><br><span class="a">+</span><span class="m">hasShipsRemaining(player)</span><br><span class="a">+</span><span class="m">viewBattleField()</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">Board has-a Ship &bull; used by service</div><div class="arr">&#9660;</div></div>
+
+  <!-- Layer 3: Strategy -->
+  <div class="layer">
+    <div class="layer-label strat">Strategy</div>
+    <div class="layer-content">
+      <div class="uml intf" onclick="sel('strategy')">
+        <div class="uml-h"><div class="st">&laquo;interface&raquo;</div><div class="nm">Strategy</div></div>
+        <div class="uml-s"><span class="a">+</span><span class="m">nextShot(minCol, maxCol,</span><br><span class="m">&nbsp;&nbsp;minRow, maxRow) : int[]</span></div>
+      </div>
+      <div class="uml" onclick="sel('random')">
+        <div class="uml-h"><div class="st">&laquo;implements Strategy&raquo;</div><div class="nm">RandomStrategy</div></div>
+        <div class="uml-s"><span class="a">-</span><span class="f">random : Random</span><br><span class="a">-</span><span class="f">firedCoordinates : ConcurrentSkipListSet</span></div>
+        <div class="uml-s"><span class="a">+</span><span class="m">nextShot(...) : int[]</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">injected into</div><div class="arr">&#9660;</div></div>
+
+  <!-- Layer 4: Service -->
+  <div class="layer">
+    <div class="layer-label svc">Service</div>
+    <div class="layer-content">
+      <div class="uml intf" onclick="sel('gs')">
+        <div class="uml-h"><div class="st">&laquo;interface&raquo;</div><div class="nm">GameService</div></div>
+        <div class="uml-s">
+          <span class="a">+</span><span class="m">initGame(size)</span><br>
+          <span class="a">+</span><span class="m">addShip(player, x, y, size)</span><br>
+          <span class="a">+</span><span class="m">viewBattleField()</span><br>
+          <span class="a">+</span><span class="m">startGame()</span>
+        </div>
+      </div>
+      <div class="uml" onclick="sel('gsi')">
+        <div class="uml-h"><div class="st">&laquo;implements GameService&raquo;</div><div class="nm">GameServiceImpl</div></div>
+        <div class="uml-s">
+          <span class="a">-</span><span class="f">board : Board</span><br>
+          <span class="a">-</span><span class="f">strategyA, strategyB : Strategy</span><br>
+          <span class="a">-</span><span class="f">shipCounterA/B : AtomicInteger</span><br>
+          <span class="a">-</span><span class="f">lock : ReentrantLock</span>
+        </div>
+        <div class="uml-s">
+          <span class="a">+</span><span class="m">initGame(), addShip()</span><br>
+          <span class="a">+</span><span class="m">startGame() — game loop</span><br>
+          <span class="a">+</span><span class="m">viewBattleField()</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel"><div class="line"></div><div class="lbl">driven by</div><div class="arr">&#9660;</div></div>
+
+  <!-- Layer 5: Entry Point -->
+  <div class="layer">
+    <div class="layer-label entry">Entry</div>
+    <div class="layer-content">
+      <div class="uml" onclick="sel('main')">
+        <div class="uml-h"><div class="st">&laquo;entry point&raquo;</div><div class="nm">Main</div></div>
+        <div class="uml-s"><span class="m">creates Strategy &amp; GameService → initGame → addShip → startGame</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail panel -->
+<div class="detail" id="detail">
+  <h2>Click any class above</h2>
+  <p>See its role, relationships, thread-safety, and design patterns used.</p>
+</div>
+
+<!-- Sequential flow -->
+<div class="flow">
+  <h2>Game Flow (sequential)</h2>
+  <div class="steps">
+    <div class="step c1"><div class="c">1</div><div class="n">Init Game</div><div class="d">initGame(N) creates NxN Board, splits territory A | B</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c2"><div class="c">2</div><div class="n">Add Ships</div><div class="d">addShip() validates territory, overlap, places on grid</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c3"><div class="c">3</div><div class="n">Start Game</div><div class="d">Validates equal fleets, PlayerA fires first</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c4"><div class="c">4</div><div class="n">Fire Missile</div><div class="d">Strategy.nextShot() picks unique coordinate in opponent field</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c5"><div class="c">5</div><div class="n">Hit / Miss</div><div class="d">Board.shoot() marks cell HIT or MISS, tracks per-ship hits</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c6"><div class="c">6</div><div class="n">Destroyed?</div><div class="d">All cells of a ship hit → ship destroyed</div></div>
+    <div class="sa">&#8594;</div>
+    <div class="step c7"><div class="c">7</div><div class="n">Winner?</div><div class="d">No ships left for opponent → current player wins</div></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const info = {
+  cellstatus: { t: 'CellStatus', pk: 'enums/', d: 'Enum defining cell states on the grid: <b>EMPTY</b> (no ship, not fired), <b>SHIP</b> (ship occupies cell), <b>HIT</b> (missile hit a ship cell), <b>MISS</b> (missile hit an empty cell). Used by Board to track the state of every grid position.', tags: ['enum'] },
+  ship: { t: 'Ship', pk: 'model/', d: 'Immutable ship data model. Fields <b>id, player, startX, startY, size</b> are final. The <b>destroyed</b> flag is <b>volatile</b> for thread-safe visibility across threads. A ship of size S occupies an SxS square area on the grid. Only destroyed when ALL SxS cells have been hit.', tags: ['model', 'concurrency'] },
+  board: { t: 'Board', pk: 'model/', d: 'Manages the NxN grid, ship placement, shooting, and battlefield display. <br><br><b>Thread safety:</b> All mutations protected by <b>ReentrantLock</b>. Ship tracking uses <b>ConcurrentHashMap</b> for shipMap and shipHitCount.<br><br><b>placeShip()</b> — validates bounds &amp; overlap, marks grid cells as SHIP.<br><b>shoot(x,y)</b> — returns Hit/Miss/Destroyed/AlreadyFired/OutOfBounds. Increments per-ship hit counter; ship destroyed only when hits == size*size.<br><b>hasShipsRemaining()</b> — checks if any non-destroyed ships remain for a player.<br><b>viewBattleField()</b> — prints grid with ship markers (A-SH1, B-SH2), X for hits, O for misses.', tags: ['model', 'concurrency'] },
+  strategy: { t: 'Strategy (Interface)', pk: 'strategy/interfaces/', d: '<b>Strategy Pattern.</b> Defines a single method: <b>nextShot(minCol, maxColExclusive, minRow, maxRowExclusive)</b> → int[]{x, y}. Returns null when all coordinates exhausted.<br><br>Decouples firing logic from the game engine. To add a new fire strategy (e.g., sequential sweep, heat-map targeting), just implement this interface — no changes needed in GameServiceImpl.', tags: ['strategy'] },
+  random: { t: 'RandomStrategy', pk: 'strategy/impl/', d: 'Default fire strategy — <b>random coordinate fire</b>. Uses <b>ConcurrentSkipListSet</b> to track all previously fired coordinates, ensuring no duplicate missiles are ever fired.<br><br>Generates random (x, y) within the given bounds. Retries if coordinate already fired. Returns null when all cells in the target area have been exhausted. Each player gets their own instance so tracking is independent.', tags: ['strategy', 'concurrency'] },
+  gs: { t: 'GameService (Interface)', pk: 'service/interfaces/', d: 'Contract for all game operations. Code depends on this interface, not the concrete implementation — <b>Dependency Inversion Principle</b>.<br><br>Methods: <b>initGame(size)</b> — create board, <b>addShip(player, x, y, size)</b> — place a ship, <b>viewBattleField()</b> — display grid, <b>startGame()</b> — run the game loop.', tags: ['service'] },
+  gsi: { t: 'GameServiceImpl', pk: 'service/impl/', d: 'The game engine. Implements GameService. Orchestrates the entire game lifecycle.<br><br><b>Thread safety:</b> <b>ReentrantLock</b> protects initGame/addShip. Ship counters use <b>AtomicInteger</b> (no ID gaps — counter decremented on failed placement).<br><br><b>Validation:</b> Board size must be positive even number. Ships validated against player territory (A = left half, B = right half). Equal fleet sizes enforced before game starts.<br><br><b>Game loop:</b> Alternates turns (A first). Delegates shot selection to each player\'s Strategy instance. Delegates hit resolution to Board.shoot(). Prints output per spec. Ends when one player\'s ships are all destroyed, or both players exhaust coordinates (draw).', tags: ['service', 'concurrency'] },
+  main: { t: 'Main', pk: 'com.BattleShipGame', d: 'Entry point. Wires everything together:<br>1. Creates two <b>RandomStrategy</b> instances (one per player)<br>2. Creates <b>GameServiceImpl</b> via the GameService interface<br>3. Calls <b>initGame(8)</b> for an 8x8 board<br>4. Adds 2 ships per player with <b>addShip()</b><br>5. Shows initial battlefield, runs <b>startGame()</b>, shows final battlefield', tags: ['service'] }
+};
+
+function sel(id) {
+  document.querySelectorAll('.uml').forEach(u => u.classList.remove('active'));
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  const d = info[id]; if (!d) return;
+  const tags = d.tags.map(t => '<span class="tag ' + t + '">' + t + '</span>').join('');
+  document.getElementById('detail').innerHTML =
+    '<h2>' + d.t + '</h2><div class="pk">' + d.pk + '</div><p>' + d.d + '</p><div style="margin-top:8px">' + tags + '</div>';
+}
+</script>
+</body>
+</html>

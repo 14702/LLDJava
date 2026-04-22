@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Management System — Architecture Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; padding: 18px; }
+  h1 { text-align: center; color: #00d4ff; font-size: 1.4rem; margin-bottom: 14px; }
+  .row { display: flex; justify-content: center; gap: 18px; margin-bottom: 10px; flex-wrap: nowrap; }
+  .arrow-row { display: flex; justify-content: center; gap: 40px; margin: 6px 0; }
+  .arrow-row span { color: #00d4ff; font-size: 1.3rem; }
+  .box { background: #16213e; border: 1.5px solid #0f3460; border-radius: 8px; padding: 10px 14px; min-width: 170px; max-width: 260px; flex: 1; cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+  .box:hover { border-color: #00d4ff; box-shadow: 0 0 10px rgba(0,212,255,.25); }
+  .box.active { border-color: #e94560; box-shadow: 0 0 12px rgba(233,69,96,.3); }
+  .box-title { font-weight: 700; font-size: .85rem; color: #00d4ff; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .box-title .tag { font-size: .6rem; background: #0f3460; padding: 1px 6px; border-radius: 3px; color: #aaa; }
+  .box-fields, .box-methods { font-size: .72rem; color: #bbb; line-height: 1.5; }
+  .box-methods { color: #7ec8e3; border-top: 1px solid #0f3460; margin-top: 4px; padding-top: 4px; }
+  .detail { display: none; background: #0f3460; border-radius: 6px; padding: 12px 16px; margin: 6px auto 10px; max-width: 700px; font-size: .78rem; line-height: 1.6; color: #ccc; }
+  .detail.show { display: block; }
+  .detail b { color: #e94560; }
+  .legend { text-align: center; margin-top: 14px; font-size: .7rem; color: #666; }
+  .legend span { margin: 0 10px; }
+  .state-flow { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 10px 0; flex-wrap: nowrap; }
+  .state { background: #16213e; border: 1.5px solid #0f3460; border-radius: 6px; padding: 5px 12px; font-size: .75rem; font-weight: 600; }
+  .state.created { color: #ffd700; border-color: #ffd700; }
+  .state.confirmed { color: #00d4ff; border-color: #00d4ff; }
+  .state.fulfilled { color: #4caf50; border-color: #4caf50; }
+  .state.cancelled { color: #e94560; border-color: #e94560; }
+  .sarrow { color: #555; font-size: 1.1rem; }
+  .section-label { text-align: center; font-size: .7rem; color: #555; margin: 4px 0 2px; text-transform: uppercase; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<h1>Order Management System — Class Diagram</h1>
+
+<!-- Row 1: Entry point -->
+<div class="section-label">Entry Point</div>
+<div class="row">
+  <div class="box" onclick="toggle('d-main')">
+    <div class="box-title">Main <span class="tag">class</span></div>
+    <div class="box-methods">+ main(args): void<br>+ assertEquals(...): void<br>+ expectException(...): void</div>
+  </div>
+</div>
+<div id="d-main" class="detail">Entry point and test harness. Wires up providers and service, runs all test scenarios including inventory ops, order lifecycle, validations, error codes, and auto-cancel.</div>
+
+<div class="arrow-row"><span>▼ uses</span></div>
+
+<!-- Row 2: Service layer -->
+<div class="section-label">Service Layer</div>
+<div class="row">
+  <div class="box" onclick="toggle('d-osi')">
+    <div class="box-title">OrderService <span class="tag">interface</span></div>
+    <div class="box-methods">+ addItemToInventory(id, qty, price)<br>+ getAvailableInventory(id, seller)<br>+ createOrder(cust, items, addr, seller)<br>+ updateOrder(orderId, state)</div>
+  </div>
+  <div class="box" onclick="toggle('d-osimpl')">
+    <div class="box-title">OrderServiceImpl <span class="tag">implements</span></div>
+    <div class="box-fields">- orders: ConcurrentHashMap&lt;String, Order&gt;<br>- orderCounter: AtomicInteger<br>- scheduler: ScheduledExecutorService<br>- autoCancelDelayMs: long</div>
+    <div class="box-methods">+ createOrder(): reserves inventory, returns Order<br>+ updateOrder(): confirm / cancel / fulfill<br>- scheduleAutoCancel(): auto-cancel timer</div>
+  </div>
+</div>
+<div id="d-osi" class="detail"><b>OrderService</b> — defines the contract: add inventory, query available stock, create orders, and transition order state.</div>
+<div id="d-osimpl" class="detail"><b>OrderServiceImpl</b> — orchestrates order lifecycle. On create: validates inputs, calculates total, reserves stock, schedules auto-cancel. On update: enforces state machine (CREATED→CONFIRMED→FULFILLED, or →CANCELLED). Uses <b>synchronized</b> on updateOrder + <b>ScheduledExecutorService</b> for auto-cancel.</div>
+
+<div class="arrow-row"><span>▼ delegates to</span></div>
+
+<!-- Row 3: Inventory layer -->
+<div class="section-label">Inventory Layer</div>
+<div class="row">
+  <div class="box" onclick="toggle('d-ip')">
+    <div class="box-title">InventoryProvider <span class="tag">interface</span></div>
+    <div class="box-methods">+ getAvailableQuantity(id): int<br>+ getPricePerUnit(id): double<br>+ reserve(items): void<br>+ confirmReservation(items): void<br>+ releaseReserved(items): void<br>+ releaseBlocked(items): void<br>+ fulfill(items): void</div>
+  </div>
+  <div class="box" onclick="toggle('d-iip')">
+    <div class="box-title">InternalInventoryProvider <span class="tag">implements</span></div>
+    <div class="box-fields">- inventory: ConcurrentHashMap<br>- locks: ConcurrentHashMap&lt;String, ReentrantLock&gt;</div>
+    <div class="box-methods">+ addItem(id, qty, price)<br>+ reserve / confirm / release / fulfill<br>Per-item ReentrantLock for thread safety</div>
+  </div>
+  <div class="box" onclick="toggle('d-eip')">
+    <div class="box-title">ExternalInventoryProvider <span class="tag">implements</span></div>
+    <div class="box-fields">- inventory: ConcurrentHashMap<br>- locks: ConcurrentHashMap&lt;String, ReentrantLock&gt;</div>
+    <div class="box-methods">Simulates external seller API<br>Pre-loaded catalog (EXT_PHONE, etc.)<br>+ reserve / confirm / release / fulfill</div>
+  </div>
+</div>
+<div id="d-ip" class="detail"><b>InventoryProvider</b> — abstraction for any inventory source. Supports reserve (provisional hold), confirmReservation (reserve→block), releaseReserved (undo reserve), releaseBlocked (undo block on cancel), and fulfill (deduct stock permanently).</div>
+<div id="d-iip" class="detail"><b>InternalInventoryProvider</b> — Flipkart's own inventory. Uses <b>ConcurrentHashMap</b> for storage and per-item <b>ReentrantLock</b> for safe concurrent access. Supports addItem to stock new products or increase quantity.</div>
+<div id="d-eip" class="detail"><b>ExternalInventoryProvider</b> — simulates an external seller's API. Same InventoryProvider contract but inventory is pre-loaded (not managed by Flipkart). Cannot add items via addItemToInventory.</div>
+
+<div class="arrow-row"><span>▼ operates on</span></div>
+
+<!-- Row 4: Models -->
+<div class="section-label">Models</div>
+<div class="row">
+  <div class="box" onclick="toggle('d-order')">
+    <div class="box-title">Order <span class="tag">model</span></div>
+    <div class="box-fields">- orderId: String<br>- customerId: String<br>- items: List&lt;OrderItem&gt;<br>- address: String<br>- seller: SellerType<br>- totalAmount: double<br>- state: OrderState<br>- createdAt: long</div>
+  </div>
+  <div class="box" onclick="toggle('d-oi')">
+    <div class="box-title">OrderItem <span class="tag">model</span></div>
+    <div class="box-fields">- itemId: String<br>- quantity: int</div>
+  </div>
+  <div class="box" onclick="toggle('d-ii')">
+    <div class="box-title">InventoryItem <span class="tag">model</span></div>
+    <div class="box-fields">- itemId: String<br>- totalQuantity: int<br>- reservedQuantity: int<br>- blockedQuantity: int<br>- pricePerUnit: double</div>
+    <div class="box-methods">+ getAvailableQuantity(): int<br>= total - reserved - blocked</div>
+  </div>
+  <div class="box" onclick="toggle('d-enums')">
+    <div class="box-title">Enums <span class="tag">model</span></div>
+    <div class="box-fields">OrderState: CREATED, CONFIRMED,<br>&nbsp;&nbsp;CANCELLED, FULFILLED<br>SellerType: INTERNAL, EXTERNAL</div>
+  </div>
+</div>
+<div id="d-order" class="detail"><b>Order</b> — represents a customer purchase. Holds all items (same seller), address, calculated total, and tracks state transitions. createdAt used for auto-cancel timeout.</div>
+<div id="d-oi" class="detail"><b>OrderItem</b> — a line item: which product and how many units.</div>
+<div id="d-ii" class="detail"><b>InventoryItem</b> — tracks stock levels with three buckets: total, reserved (provisional), blocked (confirmed). Available = total − reserved − blocked. On fulfill, total and blocked both decrease.</div>
+<div id="d-enums" class="detail"><b>OrderState</b> — CREATED (reserved) → CONFIRMED (blocked) → FULFILLED (deducted). CANCELLED can happen from CREATED or CONFIRMED.<br><b>SellerType</b> — INTERNAL (Flipkart-managed) or EXTERNAL (third-party seller API).</div>
+
+<div class="arrow-row"><span>▼ validated by</span></div>
+
+<!-- Row 5: Exception -->
+<div class="section-label">Exceptions</div>
+<div class="row">
+  <div class="box" onclick="toggle('d-ex')">
+    <div class="box-title">OrderException <span class="tag">exception</span></div>
+    <div class="box-fields">- errorCode: ErrorCode</div>
+    <div class="box-methods">Thrown with specific ErrorCode on<br>any validation or state error</div>
+  </div>
+  <div class="box" onclick="toggle('d-ec')">
+    <div class="box-title">ErrorCode <span class="tag">enum</span></div>
+    <div class="box-fields">ITEM_NOT_FOUND<br>INSUFFICIENT_INVENTORY<br>INVALID_ORDER<br>ORDER_NOT_FOUND<br>INVALID_STATE_TRANSITION<br>INVALID_QUANTITY<br>EXTERNAL_INVENTORY_UNMANAGED</div>
+  </div>
+</div>
+<div id="d-ex" class="detail"><b>OrderException</b> — custom RuntimeException carrying an <b>ErrorCode</b>. Every validation failure (empty fields, bad quantities, wrong state) throws with a specific code for easy handling.</div>
+<div id="d-ec" class="detail"><b>ErrorCode</b> — enumeration of all error scenarios. Allows callers to programmatically identify what went wrong without parsing message strings.</div>
+
+<!-- Order State Flow -->
+<div class="section-label" style="margin-top: 18px;">Order State Flow</div>
+<div class="state-flow">
+  <div class="state created">CREATED</div>
+  <span class="sarrow">→ confirm →</span>
+  <div class="state confirmed">CONFIRMED</div>
+  <span class="sarrow">→ fulfill →</span>
+  <div class="state fulfilled">FULFILLED</div>
+</div>
+<div class="state-flow">
+  <div class="state created">CREATED</div>
+  <span class="sarrow">→ cancel →</span>
+  <div class="state cancelled">CANCELLED</div>
+  <span class="sarrow" style="color:#444">← or →</span>
+  <div class="state confirmed">CONFIRMED</div>
+  <span class="sarrow">→ cancel →</span>
+  <div class="state cancelled">CANCELLED</div>
+</div>
+<div class="state-flow" style="margin-top:4px;">
+  <div class="state created" style="font-size:.65rem; border-style:dashed;">CREATED (timeout)</div>
+  <span class="sarrow">→ auto-cancel →</span>
+  <div class="state cancelled">CANCELLED</div>
+</div>
+
+<div class="legend">
+  <span>▶ Click any box for details</span>
+  <span>|</span>
+  <span>Interface → Implementation pattern throughout</span>
+  <span>|</span>
+  <span>ConcurrentHashMap + ReentrantLock for thread safety</span>
+</div>
+
+<script>
+function toggle(id) {
+  const el = document.getElementById(id);
+  const wasOpen = el.classList.contains('show');
+  document.querySelectorAll('.detail.show').forEach(d => d.classList.remove('show'));
+  document.querySelectorAll('.box.active').forEach(b => b.classList.remove('active'));
+  if (!wasOpen) {
+    el.classList.add('show');
+    event.currentTarget.classList.add('active');
+  }
+}
+</script>
+</body>
+</html>

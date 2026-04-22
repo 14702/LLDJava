@@ -1,0 +1,11 @@
+package com.OrderMgmtSystem.exception;
+
+public enum ErrorCode {
+    ITEM_NOT_FOUND,
+    INSUFFICIENT_INVENTORY,
+    INVALID_ORDER,
+    ORDER_NOT_FOUND,
+    INVALID_STATE_TRANSITION,
+    INVALID_QUANTITY,
+    EXTERNAL_INVENTORY_UNMANAGED
+}

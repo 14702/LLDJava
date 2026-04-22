@@ -4,7 +4,7 @@ public class Ship {
     private final String id;
     private final String player; // "A" or "B"
     private final int startX, startY, size;
-    private boolean destroyed = false;
+    private volatile boolean destroyed = false;
 
     public Ship(String id, String player, int startX, int startY, int size) {
         this.id = id;

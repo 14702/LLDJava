@@ -1,12 +1,17 @@
 package com.BattleShipGame.model;
+
 import com.BattleShipGame.enums.CellStatus;
-import java.util.HashMap;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Board {
     private final int size;
     private final CellStatus[][] grid;
-    private final String[][] shipMarkers; // holds "A-SH1", "B-SH1", etc.
-    private final HashMap<String, Ship> shipMap = new HashMap<>();
+    private final String[][] shipMarkers;
+    private final ConcurrentHashMap<String, Ship> shipMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Integer> shipHitCount = new ConcurrentHashMap<>();
+    private final ReentrantLock lock = new ReentrantLock();
 
     public Board(int size) {
         this.size = size;
@@ -19,78 +24,91 @@ public class Board {
             }
     }
 
+    public int getSize() {
+        return size;
+    }
+
     public boolean placeShip(Ship ship) {
-        int x = ship.getStartX(), y = ship.getStartY(), s = ship.getSize();
-        // Bound check
-        if (x < 0 || y < 0 || x + s > size || y + s > size) return false;
-        // Overlap check
-        for (int i = x; i < x + s; i++)
-            for (int j = y; j < y + s; j++)
-                if (grid[i][j] != CellStatus.EMPTY) return false;
-        // Place ship
-        for (int i = x; i < x + s; i++)
-            for (int j = y; j < y + s; j++) {
-                grid[i][j] = CellStatus.SHIP;
-                shipMarkers[i][j] = ship.getPlayer() + "-" + ship.getId();
-            }
-        shipMap.put(ship.getPlayer() + "-" + ship.getId(), ship);
-        return true;
+        lock.lock();
+        try {
+            int x = ship.getStartX(), y = ship.getStartY(), s = ship.getSize();
+            if (x < 0 || y < 0 || x + s > size || y + s > size) return false;
+            for (int i = x; i < x + s; i++)
+                for (int j = y; j < y + s; j++)
+                    if (grid[i][j] != CellStatus.EMPTY) return false;
+            String key = ship.getPlayer() + "-" + ship.getId();
+            for (int i = x; i < x + s; i++)
+                for (int j = y; j < y + s; j++) {
+                    grid[i][j] = CellStatus.SHIP;
+                    shipMarkers[i][j] = key;
+                }
+            shipMap.put(key, ship);
+            shipHitCount.put(key, 0);
+            return true;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public String shoot(int x, int y) {
-        if (grid[x][y] == CellStatus.SHIP) {
-            grid[x][y] = CellStatus.HIT;
-            String marker = shipMarkers[x][y];
-            Ship ship = shipMap.get(marker);
-            if (ship != null) {
-                ship.setDestroyed(true);
-                removeShipFromBoard(ship); // Remove entire ship if any part is hit
-                return "Hit|" + marker + "|Destroyed";
-            }
-            return "Hit|" + marker;
-        } else if (grid[x][y] == CellStatus.EMPTY) {
-            grid[x][y] = CellStatus.MISS;
-            return "Miss";
-        } else {
-            return "Miss";
-        }
-    }
+        lock.lock();
+        try {
+            if (x < 0 || x >= size || y < 0 || y >= size) return "OutOfBounds";
+            if (grid[x][y] == CellStatus.HIT || grid[x][y] == CellStatus.MISS) return "AlreadyFired";
 
-    private void removeShipFromBoard(Ship ship) {
-        int x = ship.getStartX(), y = ship.getStartY(), s = ship.getSize();
-        for (int i = x; i < x + s; i++)
-            for (int j = y; j < y + s; j++) {
-                if (shipMarkers[i][j].equals(ship.getPlayer() + "-" + ship.getId())) {
-                    grid[i][j] = CellStatus.EMPTY;
-                    shipMarkers[i][j] = "";
+            if (grid[x][y] == CellStatus.SHIP) {
+                grid[x][y] = CellStatus.HIT;
+                String marker = shipMarkers[x][y];
+                Ship ship = shipMap.get(marker);
+                int hits = shipHitCount.merge(marker, 1, Integer::sum);
+                int totalCells = ship.getSize() * ship.getSize();
+                if (hits >= totalCells) {
+                    ship.setDestroyed(true);
+                    return "Hit|" + marker + "|Destroyed";
                 }
+                return "Hit|" + marker;
+            } else {
+                grid[x][y] = CellStatus.MISS;
+                return "Miss";
             }
-        shipMap.remove(ship.getPlayer() + "-" + ship.getId());
+        } finally {
+            lock.unlock();
+        }
     }
 
     public boolean hasShipsRemaining(String player) {
-        for (Ship ship : shipMap.values()) {
-            if (ship.getPlayer().equals(player) && !ship.isDestroyed())
-                return true;
+        lock.lock();
+        try {
+            for (Ship ship : shipMap.values())
+                if (ship.getPlayer().equals(player) && !ship.isDestroyed())
+                    return true;
+            return false;
+        } finally {
+            lock.unlock();
         }
-        return false;
     }
 
     public void viewBattleField() {
-        System.out.println("Battlefield:");
-        for (int j = 0; j < size; j++) { // rows
-            for (int i = 0; i < size; i++) { // columns
-                if (shipMarkers[i][j] != null && !shipMarkers[i][j].isEmpty()) {
-                    System.out.print(shipMarkers[i][j] + "\t");
-                } else if (grid[i][j] == CellStatus.HIT) {
-                    System.out.print("X\t");
-                } else if (grid[i][j] == CellStatus.MISS) {
-                    System.out.print("O\t");
-                } else {
-                    System.out.print(".\t");
+        lock.lock();
+        try {
+            System.out.println("Battlefield:");
+            for (int j = 0; j < size; j++) {
+                for (int i = 0; i < size; i++) {
+                    if (shipMarkers[i][j] != null && !shipMarkers[i][j].isEmpty()
+                            && grid[i][j] == CellStatus.SHIP) {
+                        System.out.printf("%-8s", shipMarkers[i][j]);
+                    } else if (grid[i][j] == CellStatus.HIT) {
+                        System.out.printf("%-8s", "X");
+                    } else if (grid[i][j] == CellStatus.MISS) {
+                        System.out.printf("%-8s", "O");
+                    } else {
+                        System.out.printf("%-8s", ".");
+                    }
                 }
+                System.out.println();
             }
-            System.out.println();
+        } finally {
+            lock.unlock();
         }
     }
 }

@@ -30,3 +30,4 @@
 - Show classes with fields and methods, relationships (implements, uses, has-a), and a sequential data flow
 - Keep it clean — easy to read at a glance, not cluttered
 - Build the diagram at the very end, after all code is done and tested
+- Place the diagram as `architecture-diagram.html` in the project's root package directory
