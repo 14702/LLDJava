@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JourneyFramework — Architecture</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #2d3436; color: #dfe6e9; font-family: 'Segoe UI', sans-serif; font-size: 13px; width: 100%; padding: 10px 16px 30px; }
+h1 { text-align: center; font-size: 20px; color: #74b9ff; margin: 10px 0 4px; }
+.subtitle { text-align: center; color: #636e72; font-size: 12px; margin-bottom: 14px; }
+
+/* Tabs */
+.tabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 14px; }
+.tab { padding: 6px 16px; border-radius: 6px; cursor: pointer; background: #3d4a4f; color: #b2bec3; border: 1px solid #4a5a60; font-size: 12px; transition: all .2s; }
+.tab:hover { background: #4a5a60; }
+.tab.active { background: #0984e3; color: #fff; border-color: #0984e3; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* Class diagram */
+.layer { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+.layer-label { text-align: center; color: #636e72; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0 4px; }
+.cls { background: #3d4a4f; border: 1px solid #4a5a60; border-radius: 8px; min-width: 185px; max-width: 240px; cursor: pointer; transition: all .2s; overflow: hidden; }
+.cls:hover { border-color: #74b9ff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+.cls-header { padding: 6px 10px; font-weight: 700; font-size: 12px; border-bottom: 1px solid #4a5a60; display: flex; justify-content: space-between; align-items: center; }
+.cls-header .tag { font-size: 9px; padding: 1px 6px; border-radius: 4px; font-weight: 400; }
+.tag-enum { background: #6c5ce7; color: #fff; }
+.tag-iface { background: #00b894; color: #fff; }
+.tag-impl { background: #0984e3; color: #fff; }
+.tag-model { background: #e17055; color: #fff; }
+.tag-exc { background: #d63031; color: #fff; }
+.cls-body { padding: 6px 10px; font-size: 11px; line-height: 1.6; display: none; }
+.cls.open .cls-body { display: block; }
+.field { color: #81ecec; }
+.method { color: #ffeaa7; }
+.sep { border-top: 1px dashed #4a5a60; margin: 3px 0; }
+
+/* Arrows between layers */
+.arrows { display: flex; justify-content: center; margin: 2px 0; }
+.arrow-down { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #636e72; }
+.arrow-label { color: #636e72; font-size: 10px; margin-left: 8px; }
+
+/* State machine */
+.sm-container { display: flex; justify-content: center; align-items: flex-start; gap: 0; flex-wrap: wrap; padding: 10px 0; }
+.sm-node { background: #3d4a4f; border: 2px solid #4a5a60; border-radius: 10px; padding: 10px 18px; text-align: center; font-weight: 700; font-size: 13px; min-width: 100px; transition: all .2s; cursor: default; }
+.sm-node:hover { border-color: #74b9ff; }
+.sm-node.terminal { border-color: #d63031; }
+.sm-arrow { display: flex; align-items: center; padding: 0 4px; }
+.sm-arrow svg { width: 50px; height: 30px; }
+.sm-arrow svg line { stroke: #636e72; stroke-width: 2; }
+.sm-arrow svg polygon { fill: #636e72; }
+.sm-row { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 10px; }
+.sm-back { color: #636e72; font-size: 11px; text-align: center; margin: -6px 0 8px; }
+
+/* Flow diagram */
+.flow { display: flex; flex-direction: column; align-items: center; gap: 0; padding: 10px 0; }
+.flow-step { background: #3d4a4f; border: 1px solid #4a5a60; border-radius: 8px; padding: 10px 20px; width: 90%; max-width: 700px; transition: all .2s; }
+.flow-step:hover { border-color: #74b9ff; }
+.flow-step .step-title { font-weight: 700; color: #74b9ff; font-size: 13px; margin-bottom: 3px; }
+.flow-step .step-desc { color: #b2bec3; font-size: 11px; line-height: 1.5; }
+.flow-arrow { color: #636e72; font-size: 18px; line-height: 1; }
+.flow-branch { display: flex; gap: 14px; width: 90%; max-width: 700px; }
+.flow-branch .flow-step { flex: 1; }
+.flow-branch-label { text-align: center; color: #636e72; font-size: 11px; margin: 2px 0; }
+
+/* Observer diagram */
+.obs-container { display: flex; justify-content: center; align-items: flex-start; gap: 30px; padding: 20px 0; flex-wrap: wrap; }
+.obs-box { background: #3d4a4f; border: 1px solid #4a5a60; border-radius: 8px; padding: 14px 18px; min-width: 200px; text-align: center; }
+.obs-box h3 { font-size: 13px; color: #74b9ff; margin-bottom: 6px; }
+.obs-box p { font-size: 11px; color: #b2bec3; line-height: 1.5; }
+.obs-arrow-h { display: flex; align-items: center; color: #636e72; font-size: 22px; padding: 0 6px; }
+.obs-note { text-align: center; color: #636e72; font-size: 11px; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
+</style>
+</head>
+<body>
+
+<h1>JourneyFramework — Architecture</h1>
+<p class="subtitle">Click any class box to expand fields & methods</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('classes')">Class Diagram</div>
+  <div class="tab" onclick="showTab('state')">State Machine</div>
+  <div class="tab" onclick="showTab('flow')">Evaluate Flow</div>
+  <div class="tab" onclick="showTab('observer')">Observer Pattern</div>
+</div>
+
+<!-- ========== CLASS DIAGRAM ========== -->
+<div id="classes" class="panel active">
+
+<div class="layer-label">Enums & Exceptions</div>
+<div class="layer">
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">JourneyState <span class="tag tag-enum">enum</span></div>
+    <div class="cls-body">
+      <div class="field">CREATED</div>
+      <div class="field">ACTIVE</div>
+      <div class="field">PAUSED</div>
+      <div class="field">EXPIRED</div>
+      <div class="field">COMPLETED</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">JourneyType <span class="tag tag-enum">enum</span></div>
+    <div class="cls-body">
+      <div class="field">TIME_BOUND</div>
+      <div class="field">PERPETUAL</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">StageType <span class="tag tag-enum">enum</span></div>
+    <div class="cls-body">
+      <div class="field">ONBOARDING</div>
+      <div class="field">ONWARD</div>
+      <div class="field">TERMINAL</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">ErrorCode <span class="tag tag-enum">enum</span></div>
+    <div class="cls-body">
+      <div class="field">JOURNEY_NOT_FOUND</div>
+      <div class="field">JOURNEY_ALREADY_EXISTS</div>
+      <div class="field">INVALID_STATE_TRANSITION</div>
+      <div class="field">JOURNEY_NOT_ACTIVE</div>
+      <div class="field">USER_ALREADY_ONBOARDED</div>
+      <div class="field">USER_NOT_ONBOARDED</div>
+      <div class="field">INVALID_JOURNEY</div>
+      <div class="field">JOURNEY_EXPIRED</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">JourneyException <span class="tag tag-exc">exception</span></div>
+    <div class="cls-body">
+      <div class="field">- errorCode: ErrorCode</div>
+      <div class="sep"></div>
+      <div class="method">+ getErrorCode(): ErrorCode</div>
+      <div class="method">+ toString(): String</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrows"><div class="arrow-down"></div><span class="arrow-label">used by</span></div>
+
+<div class="layer-label">Models</div>
+<div class="layer">
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">Journey <span class="tag tag-model">model</span></div>
+    <div class="cls-body">
+      <div class="field">- journeyId: String</div>
+      <div class="field">- name: String</div>
+      <div class="field">- type: JourneyType</div>
+      <div class="field">- state: JourneyState</div>
+      <div class="field">- startDate, endDate: Date</div>
+      <div class="field">- recurring: boolean</div>
+      <div class="field">- stages: Map&lt;String, Stage&gt;</div>
+      <div class="field">- transitions: List&lt;Transition&gt;</div>
+      <div class="field">- onboardingCondition: Condition</div>
+      <div class="sep"></div>
+      <div class="method">+ addStage(Stage)</div>
+      <div class="method">+ addTransition(Transition)</div>
+      <div class="method">+ isExpired(): boolean</div>
+      <div class="method">+ hasStarted(): boolean</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">Stage <span class="tag tag-model">model</span></div>
+    <div class="cls-body">
+      <div class="field">- stageId: String</div>
+      <div class="field">- name: String</div>
+      <div class="field">- type: StageType</div>
+      <div class="field">- notifyOnEntry: boolean</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">Transition <span class="tag tag-model">model</span></div>
+    <div class="cls-body">
+      <div class="field">- fromStageId: String</div>
+      <div class="field">- toStageId: String</div>
+      <div class="field">- condition: Condition</div>
+      <div class="field">- actionName: String</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">Condition <span class="tag tag-model">model</span></div>
+    <div class="cls-body">
+      <div class="field">- requiredParams: Map</div>
+      <div class="sep"></div>
+      <div class="method">+ matches(Payload): boolean</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">Payload <span class="tag tag-model">model</span></div>
+    <div class="cls-body">
+      <div class="field">- data: Map&lt;String, String&gt;</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">UserJourneyRecord <span class="tag tag-model">model</span></div>
+    <div class="cls-body">
+      <div class="field">- userId: String</div>
+      <div class="field">- journeyId: String</div>
+      <div class="field">- currentStageId: String</div>
+      <div class="field">- runNumber: int</div>
+      <div class="sep"></div>
+      <div class="method">+ moveToStage(String)</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrows"><div class="arrow-down"></div><span class="arrow-label">stored in</span></div>
+
+<div class="layer-label">Repository — Interfaces</div>
+<div class="layer">
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">JourneyRepository <span class="tag tag-iface">interface</span></div>
+    <div class="cls-body">
+      <div class="method">+ save(Journey)</div>
+      <div class="method">+ findById(String): Journey</div>
+      <div class="method">+ findAll(): List&lt;Journey&gt;</div>
+      <div class="method">+ exists(String): boolean</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">UserJourneyRepository <span class="tag tag-iface">interface</span></div>
+    <div class="cls-body">
+      <div class="method">+ save(UserJourneyRecord)</div>
+      <div class="method">+ findActive(userId, journeyId)</div>
+      <div class="method">+ isOnboarded(userId, journeyId)</div>
+      <div class="method">+ getRunCount(userId, journeyId)</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrows"><div class="arrow-down"></div><span class="arrow-label">implements</span></div>
+
+<div class="layer-label">Repository — Implementations</div>
+<div class="layer">
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">JourneyRepositoryImpl <span class="tag tag-impl">impl</span></div>
+    <div class="cls-body">
+      <div class="field">- store: ConcurrentHashMap</div>
+      <div class="sep"></div>
+      <div class="method">Implements JourneyRepository</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">UserJourneyRepositoryImpl <span class="tag tag-impl">impl</span></div>
+    <div class="cls-body">
+      <div class="field">- records: CopyOnWriteArrayList</div>
+      <div class="sep"></div>
+      <div class="method">Implements UserJourneyRepository</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrows"><div class="arrow-down"></div><span class="arrow-label">used by</span></div>
+
+<div class="layer-label">Service Layer</div>
+<div class="layer">
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">JourneyService <span class="tag tag-iface">interface</span></div>
+    <div class="cls-body">
+      <div class="method">+ createJourney(Journey)</div>
+      <div class="method">+ updateState(journeyId, state)</div>
+      <div class="method">+ getJourney(journeyId)</div>
+      <div class="method">+ evaluate(userId, Payload)</div>
+      <div class="method">+ getCurrentStage(userId, journeyId)</div>
+      <div class="method">+ isOnboarded(userId, journeyId)</div>
+      <div class="method">+ addObserver(observer)</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">JourneyServiceImpl <span class="tag tag-impl">impl</span></div>
+    <div class="cls-body">
+      <div class="field">- journeyRepo: JourneyRepository</div>
+      <div class="field">- userJourneyRepo: UserJourneyRepository</div>
+      <div class="field">- observers: List&lt;Observer&gt;</div>
+      <div class="field">- ALLOWED_TRANSITIONS: Map</div>
+      <div class="sep"></div>
+      <div class="method">- tryTransition(userId, journey, record, payload)</div>
+      <div class="method">- expireIfNeeded(journey)</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrows"><div class="arrow-down"></div><span class="arrow-label">notifies</span></div>
+
+<div class="layer-label">Observer (SMS Notification — Optional 1)</div>
+<div class="layer">
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">StageTransitionObserver <span class="tag tag-iface">interface</span></div>
+    <div class="cls-body">
+      <div class="method">+ onTransition(userId, journeyId, from, to)</div>
+    </div>
+  </div>
+  <div class="cls" onclick="toggle(this)">
+    <div class="cls-header">SmsNotificationObserver <span class="tag tag-impl">impl</span></div>
+    <div class="cls-body">
+      <div class="method">Checks stage.notifyOnEntry</div>
+      <div class="method">Sends SMS if enabled</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ========== STATE MACHINE ========== -->
+<div id="state" class="panel">
+<div class="layer-label" style="margin-bottom:16px">Journey State Machine — Allowed Transitions</div>
+
+<div class="sm-row">
+  <div class="sm-node" style="border-color:#6c5ce7">CREATED</div>
+  <div class="sm-arrow"><svg><line x1="0" y1="15" x2="40" y2="15"/><polygon points="40,10 50,15 40,20"/></svg></div>
+  <div class="sm-node" style="border-color:#00b894">ACTIVE</div>
+  <div class="sm-arrow"><svg><line x1="0" y1="15" x2="40" y2="15"/><polygon points="40,10 50,15 40,20"/></svg></div>
+  <div class="sm-node" style="border-color:#fdcb6e">PAUSED</div>
+</div>
+<div class="sm-back">&#8592; PAUSED can go back to ACTIVE &#8594;</div>
+
+<div class="sm-row">
+  <div class="sm-node terminal" style="margin-right:30px">EXPIRED</div>
+  <div class="sm-node terminal">COMPLETED</div>
+</div>
+<div class="sm-back" style="margin-top:6px">ACTIVE &rarr; EXPIRED (auto, when time-bound end-date passes)<br>
+ACTIVE &rarr; COMPLETED &nbsp;|&nbsp; PAUSED &rarr; COMPLETED<br>
+EXPIRED and COMPLETED are terminal — no further transitions allowed</div>
+
+<div style="margin-top:24px; text-align:center; color:#636e72; font-size:11px;">
+  Transition table enforced via <span style="color:#ffeaa7;">ALLOWED_TRANSITIONS</span> map in JourneyServiceImpl.<br>
+  Invalid transitions throw <span style="color:#ff7675;">JourneyException(INVALID_STATE_TRANSITION)</span>.
+</div>
+</div>
+
+<!-- ========== EVALUATE FLOW ========== -->
+<div id="flow" class="panel">
+<div class="layer-label" style="margin-bottom:12px">evaluate(userId, payload) — Decision Flow</div>
+
+<div class="flow">
+  <div class="flow-step">
+    <div class="step-title">1. Iterate all journeys</div>
+    <div class="step-desc">For each journey in repository, auto-expire if needed. Skip if state &ne; ACTIVE or if startDate hasn't passed yet.</div>
+  </div>
+  <div class="flow-arrow">&darr;</div>
+  <div class="flow-step">
+    <div class="step-title">2. Lookup UserJourneyRecord</div>
+    <div class="step-desc">Find the latest active record for (userId, journeyId). This tells us if user is already onboarded.</div>
+  </div>
+  <div class="flow-arrow">&darr;</div>
+  <div class="flow-branch-label">Branch based on record state:</div>
+  <div class="flow-branch">
+    <div class="flow-step" style="border-color:#00b894">
+      <div class="step-title" style="color:#00b894">A. No record → Try Onboard</div>
+      <div class="step-desc">Match payload against journey's <b>onboardingCondition</b>.<br>
+      If match: create UserJourneyRecord at onboarding stage, notify observers.</div>
+    </div>
+    <div class="flow-step" style="border-color:#fdcb6e">
+      <div class="step-title" style="color:#fdcb6e">B. At terminal + recurring → Re-onboard</div>
+      <div class="step-desc">User completed the journey but it's recurring.<br>
+      Try onboarding again with a new runNumber.</div>
+    </div>
+    <div class="flow-step" style="border-color:#74b9ff">
+      <div class="step-title" style="color:#74b9ff">C. Has record, not terminal → Try Transition</div>
+      <div class="step-desc">Scan transitions where <b>fromStageId == currentStageId</b>.<br>
+      If condition matches payload: move user to toStageId, notify observers.</div>
+    </div>
+  </div>
+  <div class="flow-arrow">&darr;</div>
+  <div class="flow-step">
+    <div class="step-title">3. No match → Ignored</div>
+    <div class="step-desc">If payload doesn't match any onboarding condition or transition condition, nothing happens. Silent no-op.</div>
+  </div>
+</div>
+</div>
+
+<!-- ========== OBSERVER PATTERN ========== -->
+<div id="observer" class="panel">
+<div class="layer-label" style="margin-bottom:16px">Observer Pattern — Stage Transition Notifications (Optional 1)</div>
+
+<div class="obs-container">
+  <div class="obs-box">
+    <h3>JourneyServiceImpl</h3>
+    <p>Maintains <b>List&lt;StageTransitionObserver&gt;</b><br>
+    Iterates observers inline on every:<br>
+    &bull; Onboarding (from=null, to=stage)<br>
+    &bull; Stage transition (from→to)</p>
+  </div>
+  <div class="obs-arrow-h">&rarr;</div>
+  <div class="obs-box" style="border-color:#00b894">
+    <h3>StageTransitionObserver</h3>
+    <p><i>&laquo;interface&raquo;</i><br>
+    <b>onTransition</b>(userId, journeyId, fromStage, toStage)</p>
+  </div>
+  <div class="obs-arrow-h">&larr; implements</div>
+  <div class="obs-box" style="border-color:#0984e3">
+    <h3>SmsNotificationObserver</h3>
+    <p>Checks <b>toStage.notifyOnEntry</b><br>
+    If true → sends SMS<br>
+    Per-stage toggle via Stage constructor</p>
+  </div>
+</div>
+
+<div class="obs-note">
+  <b>Extensible:</b> Add EmailObserver, PushNotificationObserver etc. by implementing StageTransitionObserver — no changes to service code needed.<br>
+  <b>Per-stage control:</b> Each Stage has a <code style="color:#81ecec">notifyOnEntry</code> boolean. Observer checks this flag before sending.
+</div>
+</div>
+
+<script>
+function toggle(el) { el.classList.toggle('open'); }
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
